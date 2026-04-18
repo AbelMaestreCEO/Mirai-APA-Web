@@ -1,0 +1,42 @@
+apa-formatter/
+├── public/
+│   ├── index.html
+│   ├── css/
+│   │   ├── variables.css
+│   │   ├── layout.css
+│   │   └── components.css
+│   └── js/
+│       ├── app.js
+│       ├── fileHandler.js
+│       ├── uiHandler.js
+│       ├── apa/
+│       │   ├── margins.js
+│       │   ├── typography.js
+│       │   ├── spacing.js
+│       │   ├── headers.js
+│       │   ├── paragraphs.js
+│       │   ├── references.js
+│       │   ├── titlePage.js
+│       │   ├── pageNumbers.js
+│       │   ├── tables.js
+│       │   ├── figures.js
+│       │   ├── citations.js
+│       │   └── abstract.js
+│       ├── processors/
+│       │   ├── docxReader.js
+│       │   └── docxWriter.js
+│       ├── api/
+│       │   └── client.js
+│       └── utils/
+│           ├── validators.js
+│           └── constants.js
+├── workers/
+│   ├── index.js
+│   ├── routes.js
+│   ├── d1Repository.js
+│   ├── r2Repository.js
+│   └── wrangler.toml
+├── schema/
+│   └── init.sql
+├── package.json
+└── .gitignore
