@@ -1,25 +1,22 @@
 {
   "name": "mirai-apa-formatter",
   "version": "1.0.0",
-  "description": "Formateador automático de documentos a estilo APA 7 con diseño Liquid Glass iOS 26",
+  "description": "Formateador automático de documentos a estilo APA 7",
   "author": "Abel Maestre",
   "license": "MIT",
   "private": true,
   "type": "module",
   "scripts": {
-      "deploy": "cd workers && wrangler deploy",
-  "deploy:prod": "cd workers && wrangler deploy --env production",
-  "dev": "cd workers && wrangler dev",
-  "tail": "cd workers && wrangler tail",
+    "dev": "cd workers && wrangler dev",
+    "deploy": "cd workers && wrangler deploy",
+    "deploy:prod": "cd workers && wrangler deploy --env production",
+    "tail": "cd workers && wrangler tail",
     "db:create": "wrangler d1 create mirai-apa-db",
     "db:migrate": "wrangler d1 migrations apply mirai-apa-db",
     "db:execute": "wrangler d1 execute mirai-apa-db --file=./schema/init.sql",
-    "r2:create": "wrangler r2 bucket create mirai-apa",
-    "r2:list": "wrangler r2 bucket list",
+    "r2:create": "wrangler r2 bucket create mirai-apa-files",
     "lint": "eslint . --ext .js",
-    "format": "prettier --write \"**/*.{js,json,css,html}\"",
-    "build": "echo 'No build step required for pure JS/HTML project'",
-    "start": "npm run dev"
+    "format": "prettier --write \"**/*.{js,json,css,html}\""
   },
   "dependencies": {
     "docx": "^8.5.0",
