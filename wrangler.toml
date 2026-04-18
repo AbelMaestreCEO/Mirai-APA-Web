@@ -3,7 +3,7 @@
 # =========================================
 
 # Nombre del Worker (se usará en la URL: https://<name>.workers.dev)
-name = "mirai-apa-worker"
+name = "mirai-apa-web"
 
 # Archivo principal de entrada (ruta relativa a este archivo)
 main = "workers/index.js" 
@@ -40,7 +40,7 @@ ENVIRONMENT = "production"
 SERVICE_NAME = "Mirai APA Backend"
 VERSION = "1.0.0"
 MAX_FILE_SIZE_MB = "25"
-ALLOWED_ORIGINS = "https://format.aberumirai.com,https://aberumirai.com"
+ALLOWED_ORIGINS = "https://aberumirai.com"
 
 # =========================================
 # SECRETOS (NO COMMITAR AL GIT)
