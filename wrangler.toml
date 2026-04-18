@@ -22,7 +22,6 @@ compatibility_date = "2024-01-01"
 [[r2_buckets]]
 binding = "mirai-apa"          # Variable en el código (env.R2_BUCKET_NAME)
 bucket_name = "mirai-apa"     # Nombre real del bucket en Cloudflare
-jurisdiction = "0"                  # "0" = US, "eu" = Europa, "ap" = Asia (opcional)
 
 # --- D1 Database (Base de Datos SQL) ---
 [[d1_databases]]
