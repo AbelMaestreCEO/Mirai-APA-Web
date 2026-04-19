@@ -292,28 +292,3 @@ export function applyAPAStyleToParagraph(paragraph, type, headingLevel = 1) {
 // Importamos las funciones necesarias para que este archivo sea autocontenido en lógica
 // (En un entorno real, estas importaciones ya están arriba)
 import { applyDoubleLineSpacing, removeParagraphSpacing, removeIndent, applyFirstLineIndent, applyHangingIndent, applySingleLineSpacing } from './spacing.js';
-
-
-/**
- * Helper para remover espaciado entre párrafos
- */
-function removeParagraphSpacing(spacing) {
-    if (!spacing) return;
-    if (typeof spacing.setBefore === 'function') spacing.setBefore(0);
-    else spacing.before = 0;
-    if (typeof spacing.setAfter === 'function') spacing.setAfter(0);
-    else spacing.after = 0;
-}
-
-/**
- * Helper para remover sangría
- */
-function removeIndent(indent) {
-    if (!indent) return;
-    if (typeof indent.setFirstLine === 'function') indent.setFirstLine(0);
-    else indent.firstLine = 0;
-    if (typeof indent.setHanging === 'function') indent.setHanging(0);
-    else indent.hanging = 0;
-    if (typeof indent.setLeft === 'function') indent.setLeft(0);
-    else indent.left = 0;
-}
