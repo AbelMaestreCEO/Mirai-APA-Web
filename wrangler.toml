@@ -1,47 +1,18 @@
-# =========================================
-# CONFIGURACIÓN GENERAL DEL WORKER
-# =========================================
-
 name = "mirai-apa-web"
-main = "workers/index.js"
 compatibility_date = "2024-01-01"
 
-[build]
-command = "npm install"
+# Pages usa las Functions de la carpeta /functions automáticamente.
+# El frontend se sirve desde la raíz del repo.
+# No necesita "main" aquí — eso es solo para Workers standalone.
 
-# =========================================
-# BINDINGS DE RECURSOS
-# =========================================
-
-# IMPORTANTE: el "binding" es el nombre que usas en el código como env.NOMBRE
 [[r2_buckets]]
-binding = "R2_BUCKET"          # En el código: env.R2_BUCKET
-bucket_name = "mirai-apa"      # Nombre real del bucket en Cloudflare
+binding = "R2_BUCKET"
+bucket_name = "mirai-apa"
 
 [[d1_databases]]
-binding = "DB"                          # En el código: env.DB
-database_name = "mirai-apa-db"          # Nombre real de la DB en Cloudflare
+binding = "DB"
+database_name = "mirai-apa-db"
 database_id = "3e137a15-c354-4ac3-ad37-85660d7e79ca"
-
-# =========================================
-# VARIABLES DE ENTORNO
-# =========================================
 
 [vars]
 ENVIRONMENT = "production"
-SERVICE_NAME = "Mirai APA Backend"
-VERSION = "1.0.0"
-MAX_FILE_SIZE_MB = "25"
-ALLOWED_ORIGINS = "https://mirai-apa-web.pages.dev"
-
-# =========================================
-# ENTORNOS
-# =========================================
-
-[dev]
-port = 8787
-local_protocol = "http"
-
-[env.production]
-name = "mirai-apa-web"
-vars = { ENVIRONMENT = "production", ALLOWED_ORIGINS = "https://format.aberumirai.com" }
