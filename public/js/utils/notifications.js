@@ -111,6 +111,7 @@ export function showNotification(message, type = 'info', options = {}) {
     enforceToastLimit(container);
 
     return toastId;
+    return showInfo(message, options);
 }
 
 /**
@@ -423,11 +424,6 @@ if (typeof window !== 'undefined') {
  */
 export function hideNotification() {
     dismissAllNotifications();
-}
-
-// También agregar showNotification como alias para showInfo
-export function showNotification(message, type = 'info', options = {}) {
-    return showInfo(message, options);
 }
 
 // Exportar configuración para acceso externo
