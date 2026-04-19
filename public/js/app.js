@@ -163,7 +163,7 @@ function handleProcessingError(error) {
     // Resetear después de unos segundos
     setTimeout(() => {
         resetApplication();
-    }, 3000);
+    }, 3600000); // 1 hora, para dar tiempo al usuario a leer el mensaje
 }
 
 /**
