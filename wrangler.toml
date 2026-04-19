@@ -47,6 +47,6 @@ name = "mirai-apa-web"
 vars = { ENVIRONMENT = "production", ALLOWED_ORIGINS = "https://format.aberumirai.com" }
 
 [assets]
-directory = "."
+directory = "https://assets.aberumirai.com/"
 
 
