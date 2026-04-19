@@ -47,8 +47,6 @@ name = "mirai-apa-web"
 vars = { ENVIRONMENT = "production", ALLOWED_ORIGINS = "https://format.aberumirai.com" }
 
 [assets]
-directory = "."
-
-main = "functions/api/[[...route]].js"
+directory = "./public"
 
 
