@@ -390,8 +390,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" integrity="sha512-Qlv6VSKh1gDKGoJbnyA5RMXYcvnpIqhO++MhIM2fStMcGT9i2T//tSwYFlcyoRRDcDZ+TYHpH8azBBCyhpSeqw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <!-- ✅ BIEN (Bundle UMD que expone window.docx) -->
 <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
+
+<script>
+window.addEventListener('load', () => {
+    console.log('=== DEBUG DOCX STRUCTURE ===');
+    console.log('typeof docx:', typeof docx);
+    console.log('docx keys:', Object.keys(docx || {}).slice(0, 20));
+    console.log('docx.Section:', typeof (docx?.Section));
+    console.log('docx.docx?.Section:', typeof (docx?.docx?.Section));
+    console.log('===========================');
+});
+</script>
 
     <!-- Scripts -->
     <script type="module"  src="js/utils/constants.js"></script>
