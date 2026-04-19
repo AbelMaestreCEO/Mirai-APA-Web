@@ -45,12 +45,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/AbelMaestreCEO/mirai-apa"
+    "url": "https://github.com/AbelMaestreCEO/mirai-apa-web"
   },
   "bugs": {
     "url": "https://github.com/AbelMaestreCEO/mirai-apa/issues"
   },
-  "homepage": "https://format.aberumirai.com",
+  "homepage": "https://aberumirai.com",
   "eslintConfig": {
     "env": {
       "browser": true,

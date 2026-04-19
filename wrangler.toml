@@ -11,6 +11,11 @@ main = "workers/index.js"
 # Versión de compatibilidad de la API de Cloudflare
 compatibility_date = "2024-01-01"
 
+# Configurar Pages Functions
+[build]
+command = "npm install"
+publish = "public"
+
 # Habilitar flags experimentales si es necesario
 # compatibility_flags = ["nodejs_compat"]
 
