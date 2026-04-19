@@ -439,7 +439,7 @@ function convertToDocxTable(t) {
  * @param {Object} img - Imagen procesada.
  * @returns {docx.ImageRun}
  */
-function convertToDocxImage(img) {
+export  async function convertToDocxImage(img) {
     if (!img || !img.src) return null;
 
     // Convertir base64 a Uint8Array (el navegador no tiene Buffer)
