@@ -3,34 +3,27 @@
  * 
  * Módulo dedicado a la generación y exportación del nuevo documento .DOCX.
  * 
- * Funcionamiento:
- * 1. Recibe los datos procesados (párrafos con estilos APA, tablas, imágenes).
- * 2. Construye la estructura del documento usando la librería 'docx'.
- * 3. Configura secciones, encabezados (paginación) y márgenes.
- * 4. Genera un Blob descargable.
- * 
- * Dependencias externas:
+ * Dependencias:
  * - docx (cargado desde CDN como window.docx)
  * - FileSaver.js (opcional, para facilitar la descarga)
- * 
- * Nota: Este módulo asume que los datos de entrada ya han sido formateado 
- * por los módulos de APA (margins, spacing, typography, etc.).
  */
 
 // =========================================
 // VERIFICACIÓN DE DEPENDENCIAS
 // =========================================
 
-// El bundle UMD expone 'docx' globalmente
-const docxLib = typeof docx !== 'undefined' ? docx : (typeof window !== 'undefined' ? window.docx : undefined);
+// El bundle UMD puede exponer las clases de diferentes formas
+const docxGlobal = typeof docx !== 'undefined' ? docx : (typeof window !== 'undefined' ? window.docx : undefined);
+
+// Intentar acceder a las clases (algunas versiones las ponen bajo docx.docx)
+const docxLib = docxGlobal?.docx || docxGlobal;
 
 if (!docxLib) {
-    console.error('[DocxWriter] CRÍTICO: docx.js no está cargado. Asegúrate de usar el CDN UMD.');
-    // Lanzar error para detener la ejecución y evitar errores confusos después
-    throw new Error('docx.js no está cargado. Por favor recarga la página y verifica el CDN.');
+    console.error('[DocxWriter] CRÍTICO: docx.js no está cargado correctamente.');
+    throw new Error('docx.js no está cargado. Por favor recarga la página.');
 }
 
-console.log('[DocxWriter] docx.js cargado correctamente (v' + (docxLib.version || '?') + ')');
+console.log('[DocxWriter] docx.js cargado correctamente');
 
 // =========================================
 // IMPORTACIONES DE MÓDULOS APA
@@ -45,7 +38,7 @@ import { APA_STANDARDS } from '../utils/constants.js';
 /**
  * Genera un nuevo documento DOCX formateado según APA 7.
  * 
- * @param {Object} data - Objeto con { paragraphs, tables, images, metadata }.
+ * @param {Object} data - Objeto con { paragraphs, tables, images, abstract }.
  * @param {Object} options - Opciones de configuración (título, autor, etc.).
  * @returns {Promise<Blob>} El blob del archivo generado.
  */
@@ -89,8 +82,12 @@ export async function generateDocx(data, options = {}) {
 
         // Añadir Imágenes procesadas
         if (images && Array.isArray(images)) {
-            images.forEach(img => {
-                const docxImage = convertToDocxImage(img);
+            const imagePromises = images.map(async (img) => {
+                return await convertToDocxImage(img);
+            });
+            
+            const resolvedImages = await Promise.all(imagePromises);
+            resolvedImages.forEach(docxImage => {
                 if (docxImage) bodyChildren.push(docxImage);
             });
         }
@@ -100,37 +97,21 @@ export async function generateDocx(data, options = {}) {
             children: [
                 new docxLib.Paragraph({
                     alignment: docxLib.AlignmentType.RIGHT,
-                    children: [
-                        new docxLib.TextRun({
-                            text: "1", // Placeholder, se actualiza automáticamente
-                            size: 24
-                        })
-                    ]
+                    children: [new docxLib.TextRun({ text: "1", size: 24 })]
                 })
             ]
         });
 
-        const footer = new docxLib.Footer({
-            children: [] // Vacío según APA 7
-        });
+        const footer = new docxLib.Footer({ children: [] });
 
         // 4. Crear la Sección Principal
         const section = new docxLib.Section({
             properties: {
-                // Márgenes APA 7 (2.54cm = 914400 EMUs)
-                margins: {
-                    top: 914400,
-                    right: 914400,
-                    bottom: 914400,
-                    left: 914400
-                },
+                margins: { top: 914400, right: 914400, bottom: 914400, left: 914400 },
                 header: header,
                 footer: footer
             },
-            children: [
-                ...titlePageChildren,
-                ...bodyChildren
-            ]
+            children: [...titlePageChildren, ...bodyChildren]
         });
 
         // 5. Crear el Documento
@@ -139,8 +120,7 @@ export async function generateDocx(data, options = {}) {
             styles: {
                 default: {
                     heading1: { run: { size: 24, bold: true } },
-                    heading2: { run: { size: 24, bold: true } },
-                    heading3: { run: { size: 24, bold: true } },
+                    heading2: { run: { size: 24, bold: true } }
                 }
             }
         });
@@ -150,10 +130,7 @@ export async function generateDocx(data, options = {}) {
         const buffer = await docxLib.Packer.toBuffer(doc);
         const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
 
-        console.log('[DocxWriter]: Documento generado exitosamente.', {
-            size: `${(blob.size / 1024).toFixed(2)} KB`
-        });
-
+        console.log('[DocxWriter]: Documento generado exitosamente.', { size: `${(blob.size / 1024).toFixed(2)} KB` });
         return blob;
 
     } catch (error) {
@@ -166,25 +143,20 @@ export async function generateDocx(data, options = {}) {
 // CONTENIDO DE PORTADA
 // =========================================
 
-/**
- * Construye el contenido de la portada.
- * @returns {Array} Array de elementos docx.
- */
 function buildTitlePageContent(title, author, affiliation, course, instructor, date) {
     const children = [];
     
-    // Usar valores por defecto si no se proporcionan
     const titleText = title || 'Título del Documento';
     const authorText = author || 'Nombre del Autor';
     const affiliationText = affiliation || 'Afiliación Institucional';
     const dateText = date || new Date().toLocaleDateString('es-ES');
 
-    // Espaciadores para centrar verticalmente (aprox 4-5 líneas)
+    // Espaciadores
     for(let i=0; i<5; i++) {
         children.push(new docxLib.Paragraph({ children: [] }));
     }
 
-    // Título (Negrita, centrado)
+    // Título
     children.push(new docxLib.Paragraph({
         alignment: docxLib.AlignmentType.CENTER,
         spacing: { before: 0, after: 200 },
@@ -192,13 +164,13 @@ function buildTitlePageContent(title, author, affiliation, course, instructor, d
             new docxLib.TextRun({
                 text: titleText,
                 bold: true,
-                size: 24, // 12pt
+                size: 24,
                 font: APA_STANDARDS.FONT.DEFAULT_FAMILY
             })
         ]
     }));
 
-    // Autor (Normal, centrado)
+    // Autor
     children.push(new docxLib.Paragraph({
         alignment: docxLib.AlignmentType.CENTER,
         spacing: { before: 200, after: 200 },
@@ -211,7 +183,7 @@ function buildTitlePageContent(title, author, affiliation, course, instructor, d
         ]
     }));
 
-    // Afiliación (Normal, centrado)
+    // Afiliación
     children.push(new docxLib.Paragraph({
         alignment: docxLib.AlignmentType.CENTER,
         spacing: { before: 200, after: 200 },
@@ -224,7 +196,7 @@ function buildTitlePageContent(title, author, affiliation, course, instructor, d
         ]
     }));
 
-    // Curso, Instructor, Fecha (si existen)
+    // Curso, Instructor, Fecha
     if (course) children.push(createCenteredParagraph(course));
     if (instructor) children.push(createCenteredParagraph(instructor));
     children.push(createCenteredParagraph(dateText));
@@ -256,10 +228,6 @@ function createCenteredParagraph(text) {
 // CONTENIDO DE ABSTRACT
 // =========================================
 
-/**
- * Construye el contenido del Abstract.
- * @returns {Array} Array de elementos docx.
- */
 function buildAbstractContent(abstractData) {
     const children = [];
 
@@ -277,7 +245,7 @@ function buildAbstractContent(abstractData) {
         ]
     }));
 
-    // Cuerpo (sin sangría, doble espacio)
+    // Cuerpo
     if (abstractData.body) {
         children.push(new docxLib.Paragraph({
             alignment: docxLib.AlignmentType.LEFT,
@@ -300,7 +268,6 @@ function buildAbstractContent(abstractData) {
 
     // Palabras clave
     if (abstractData.keywords && abstractData.keywords.length > 0) {
-        const kwText = "Palabras clave: " + abstractData.keywords.join(", ");
         children.push(new docxLib.Paragraph({
             alignment: docxLib.AlignmentType.LEFT,
             spacing: { 
@@ -334,15 +301,9 @@ function buildAbstractContent(abstractData) {
 // CONVERSIÓN DE PÁRRAFOS
 // =========================================
 
-/**
- * Convierte nuestro objeto interno de párrafo a docx.Paragraph.
- * @param {Object} p - Párrafo procesado.
- * @returns {docx.Paragraph}
- */
 function convertToDocxParagraph(p) {
     if (!p || !p.text) return null;
 
-    // Configurar espaciado y sangría según el tipo
     let spacing = { 
         line: APA_STANDARDS.SPACING.LINE_DOUBLE, 
         lineRule: docxLib.LineRuleType.AUTO, 
@@ -352,28 +313,21 @@ function convertToDocxParagraph(p) {
     let indent = { firstLine: 0 };
 
     if (p.type === 'body') {
-        indent.firstLine = 720; // 0.5" en twips
+        indent.firstLine = 720;
     } else if (p.type === 'reference') {
         indent.hanging = 720;
         indent.firstLine = 0;
     } else if (p.type === 'heading') {
-        spacing = { 
-            before: 240, 
-            after: 120, 
-            line: APA_STANDARDS.SPACING.LINE_DOUBLE, 
-            lineRule: docxLib.LineRuleType.AUTO 
-        };
+        spacing = { before: 240, after: 120, line: APA_STANDARDS.SPACING.LINE_DOUBLE, lineRule: docxLib.LineRuleType.AUTO };
         indent = { firstLine: 0 };
     }
 
-    // Configurar alineación
     let alignment = docxLib.AlignmentType.LEFT;
     if (p.type === 'heading' && p.level === 1) alignment = docxLib.AlignmentType.CENTER;
 
-    // Crear el TextRun
     const run = new docxLib.TextRun({
         text: p.text,
-        size: 24, // 12pt
+        size: 24,
         bold: p.isBold || false,
         italics: p.isItalic || false,
         font: APA_STANDARDS.FONT.DEFAULT_FAMILY
@@ -391,11 +345,6 @@ function convertToDocxParagraph(p) {
 // CONVERSIÓN DE TABLAS
 // =========================================
 
-/**
- * Convierte una tabla interna a docx.Table.
- * @param {Object} t - Tabla procesada.
- * @returns {docx.Table}
- */
 function convertToDocxTable(t) {
     if (!t || !t.rows) return null;
 
@@ -408,7 +357,7 @@ function convertToDocxTable(t) {
                             children: [
                                 new docxLib.TextRun({
                                     text: cell.text || '',
-                                    size: 20, // 10pt para tablas
+                                    size: 20,
                                     bold: cell.isHeader || false,
                                     font: APA_STANDARDS.FONT.DEFAULT_FAMILY
                                 })
@@ -416,7 +365,6 @@ function convertToDocxTable(t) {
                             alignment: cell.isNumeric ? docxLib.AlignmentType.RIGHT : docxLib.AlignmentType.LEFT
                         })
                     ],
-                    // Bordes: Solo horizontales en encabezado (APA 7)
                     borders: {
                         top: { style: docxLib.BorderStyle.NONE, size: 0 },
                         bottom: cell.isHeader ? { style: docxLib.BorderStyle.SINGLE, size: 2, color: "auto" } : { style: docxLib.BorderStyle.NONE, size: 0 },
@@ -438,20 +386,13 @@ function convertToDocxTable(t) {
 // CONVERSIÓN DE IMÁGENES
 // =========================================
 
-/**
- * Convierte una imagen interna a docx.ImageRun.
- * @param {Object} img - Imagen procesada.
- * @returns {docx.ImageRun}
- */
-export  async function convertToDocxImage(img) {
+async function convertToDocxImage(img) {
     if (!img || !img.src) return null;
 
-    // Convertir base64 a Uint8Array (el navegador no tiene Buffer)
     let imageData;
+    
     if (img.src.startsWith('data:')) {
-        // Extraer base64
         const base64Data = img.src.split(',')[1];
-        // Convertir base64 a Uint8Array
         const binaryString = atob(base64Data);
         const len = binaryString.length;
         imageData = new Uint8Array(len);
@@ -459,17 +400,16 @@ export  async function convertToDocxImage(img) {
             imageData[i] = binaryString.charCodeAt(i);
         }
     } else if (img.src.startsWith('http')) {
-        // Si es URL externa, intentar fetch
         try {
             const response = await fetch(img.src);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const arrayBuffer = await response.arrayBuffer();
             imageData = new Uint8Array(arrayBuffer);
         } catch (e) {
-            console.warn('[DocxWriter]: No se pudo cargar imagen desde URL:', img.src);
+            console.warn('[DocxWriter]: No se pudo cargar imagen desde URL:', img.src, e);
             return null;
         }
     } else {
-        // Asumir que ya es Uint8Array o Buffer
         imageData = img.src;
     }
 
@@ -491,11 +431,6 @@ export  async function convertToDocxImage(img) {
 // DESCARGA DEL DOCUMENTO
 // =========================================
 
-/**
- * Descarga el blob generado.
- * @param {Blob} blob 
- * @param {string} filename 
- */
 export function downloadBlob(blob, filename = "documento_apa.docx") {
     if (!blob) {
         console.error('[DocxWriter]: No se puede descargar, blob vacío.');
@@ -506,7 +441,6 @@ export function downloadBlob(blob, filename = "documento_apa.docx") {
         saveAs(blob, filename);
         console.log('[DocxWriter]: Documento descargado:', filename);
     } else {
-        // Fallback simple
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
@@ -520,15 +454,9 @@ export function downloadBlob(blob, filename = "documento_apa.docx") {
 }
 
 // =========================================
-// UTILIDADES ADICIONALES
+// UTILIDADES
 // =========================================
 
-/**
- * Genera documento y lo descarga automáticamente.
- * @param {Object} data 
- * @param {Object} options 
- * @param {string} filename 
- */
 export async function generateAndDownload(data, options = {}, filename = "documento_apa.docx") {
     try {
         const blob = await generateDocx(data, options);
@@ -540,10 +468,6 @@ export async function generateAndDownload(data, options = {}, filename = "docume
     }
 }
 
-/**
- * Verifica que todas las dependencias estén cargadas.
- * @returns {boolean}
- */
 export function checkDependencies() {
     const hasDocx = typeof docxLib !== 'undefined';
     const hasFileSaver = typeof saveAs !== 'undefined';
