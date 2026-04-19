@@ -5,13 +5,72 @@
   "author": "Abel Maestre",
   "license": "MIT",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "wrangler pages dev . --compatibility-date=2024-01-01",
-    "deploy": "wrangler pages deploy . --project-name=mirai-apa-web",
-    "db:init": "wrangler d1 execute mirai-apa-db --file=./schema/init.sql",
-    "db:init:local": "wrangler d1 execute mirai-apa-db --local --file=./schema/init.sql"
+    "dev": "cd workers && wrangler dev",
+    "deploy": "cd workers && wrangler deploy",
+    "deploy:prod": "cd workers && wrangler deploy --env production",
+    "tail": "cd workers && wrangler tail",
+    "db:create": "wrangler d1 create mirai-apa-db",
+    "db:migrate": "wrangler d1 migrations apply mirai-apa-db",
+    "db:execute": "wrangler d1 execute mirai-apa-db --file=./schema/init.sql",
+    "r2:create": "wrangler r2 bucket create mirai-apa-files",
+    "lint": "eslint . --ext .js",
+    "format": "prettier --write \"**/*.{js,json,css,html}\""
+  },
+  "dependencies": {
+    "docx": "^8.5.0",
+    "mammoth": "^1.6.0",
+    "jszip": "^3.10.1",
+    "file-saver": "^2.0.5"
   },
   "devDependencies": {
-    "wrangler": "^3.50.0"
+    "wrangler": "^3.50.0",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "apa7",
+    "formatter",
+    "docx",
+    "cloudflare",
+    "workers",
+    "r2",
+    "d1",
+    "liquid-glass",
+    "ios26"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AbelMaestreCEO/mirai-apa-web"
+  },
+  "bugs": {
+    "url": "https://github.com/AbelMaestreCEO/mirai-apa/issues"
+  },
+  "homepage": "https://aberumirai.com",
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "es2022": true,
+      "worker": true
+    },
+    "parserOptions": {
+      "ecmaVersion": "latest",
+      "sourceType": "module"
+    },
+    "rules": {
+      "no-console": "warn",
+      "no-unused-vars": "warn"
+    }
+  },
+  "prettier": {
+    "semi": true,
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "es5",
+    "printWidth": 100
   }
 }
