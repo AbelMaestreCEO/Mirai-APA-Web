@@ -291,7 +291,7 @@ export function applyAPAStyleToParagraph(paragraph, type, headingLevel = 1) {
 
 // Importamos las funciones necesarias para que este archivo sea autocontenido en lógica
 // (En un entorno real, estas importaciones ya están arriba)
-import { applyDoubleLineSpacing, removeParagraphSpacing, removeIndent, applyFirstLineIndent, applyHangingIndent, applyBlockQuoteIndent, applySingleLineSpacing } from './spacing.js';
+import { applyDoubleLineSpacing, removeParagraphSpacing, removeIndent, applyFirstLineIndent, applyHangingIndent, applySingleLineSpacing } from './spacing.js';
 import { applyStandardTypography, applyHeadingTypography } from './typography.js';
 import { getHeadingStyle } from './headers.js';
 

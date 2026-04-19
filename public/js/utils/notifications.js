@@ -415,5 +415,20 @@ if (typeof window !== 'undefined') {
     });
 }
 
+// Al final de js/utils/notifications.js, antes de las exports finales
+
+/**
+ * Alias para compatibilidad con código existente
+ * Cierra todas las notificaciones (equivalente a dismissAllNotifications)
+ */
+export function hideNotification() {
+    dismissAllNotifications();
+}
+
+// También agregar showNotification como alias para showInfo
+export function showNotification(message, type = 'info', options = {}) {
+    return showInfo(message, options);
+}
+
 // Exportar configuración para acceso externo
 export { NOTIFICATION_CONFIG };
