@@ -8,7 +8,7 @@
   "type": "module",
   "scripts": {
     "dev": "cd workers && wrangler dev",
-    "deploy": "cd workers && wrangler deploy",
+    "deploy": "wrangler deploy",
     "deploy:prod": "cd workers && wrangler deploy --env production",
     "tail": "cd workers && wrangler tail",
     "db:create": "wrangler d1 create mirai-apa-db",
