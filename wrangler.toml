@@ -3,7 +3,7 @@
 # =========================================
 
 name = "mirai-apa-web"
-main = "workers/index.js"
+main = "functions/api/[[...route]].js"
 compatibility_date = "2024-01-01"
 
 [build]
@@ -45,3 +45,8 @@ local_protocol = "http"
 [env.production]
 name = "mirai-apa-web"
 vars = { ENVIRONMENT = "production", ALLOWED_ORIGINS = "https://format.aberumirai.com" }
+
+[assets]
+directory = "."
+
+
