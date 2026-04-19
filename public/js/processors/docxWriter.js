@@ -21,12 +21,16 @@
 // VERIFICACIÓN DE DEPENDENCIAS
 // =========================================
 
-// Verificar que docx esté disponible (desde CDN o import)
-if (typeof docx === 'undefined' && typeof window.docx === 'undefined') {
-    console.error('[DocxWriter] docx.js no está cargado. Asegúrate de incluir el CDN.');
+// El bundle UMD expone 'docx' globalmente
+const docxLib = typeof docx !== 'undefined' ? docx : (typeof window !== 'undefined' ? window.docx : undefined);
+
+if (!docxLib) {
+    console.error('[DocxWriter] CRÍTICO: docx.js no está cargado. Asegúrate de usar el CDN UMD.');
+    // Lanzar error para detener la ejecución y evitar errores confusos después
+    throw new Error('docx.js no está cargado. Por favor recarga la página y verifica el CDN.');
 }
 
-const docxLib = typeof docx !== 'undefined' ? docx : window.docx;
+console.log('[DocxWriter] docx.js cargado correctamente (v' + (docxLib.version || '?') + ')');
 
 // =========================================
 // IMPORTACIONES DE MÓDULOS APA
