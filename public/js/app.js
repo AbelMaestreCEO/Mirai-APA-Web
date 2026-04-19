@@ -16,7 +16,7 @@
 // Importación de módulos
 import { init as initFileHandler, reset as resetFileHandler } from './fileHandler.js';
 import { init as initUI, setProcessingState, setFileName, updateProgress, resetUI } from './uiHandler.js';
-/*import { showNotification } from './utils/notifications.js';*/
+import { showNotification } from './utils/notifications.js';
 import { MESSAGES, APP_CONFIG } from './utils/constants.js';
 
 // Importación de módulos de procesamiento
