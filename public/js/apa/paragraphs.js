@@ -293,16 +293,6 @@ export function applyAPAStyleToParagraph(paragraph, type, headingLevel = 1) {
 // (En un entorno real, estas importaciones ya están arriba)
 import { applyDoubleLineSpacing, removeParagraphSpacing, removeIndent, applyFirstLineIndent, applyHangingIndent, applySingleLineSpacing } from './spacing.js';
 
-/**
- * Helper para aplicar interlineado doble (repetido para claridad en el switch)
- */
-function applyDoubleLineSpacing(spacing) {
-    if (!spacing) return;
-    if (typeof spacing.setLine === 'function') spacing.setLine(480);
-    else spacing.line = 480;
-    if (typeof spacing.setLineRule === 'function') spacing.setLineRule('auto');
-    else spacing.lineRule = 'auto';
-}
 
 /**
  * Helper para remover espaciado entre párrafos
