@@ -1,235 +1,169 @@
 /**
  * workers/index.js
- * 
+ *
  * Cloudflare Worker Backend para Mirai APA.
- * 
- * Funciones principales:
- * - POST /api/upload: Recibe el archivo DOCX procesado, lo guarda en R2 y registra en D1.
- * - GET /api/download/:id: Recupera el archivo desde R2.
- * - GET /api/history: Lista los archivos de un usuario (si hay autenticación).
- * - DELETE /api/delete/:id: Elimina el archivo de R2 y D1.
- * - GET /api/health: Health check.
- * 
- * Configuración requerida en wrangler.toml:
- * - R2_BUCKET_NAME: Nombre de tu bucket R2.
- * - D1_DB_NAME: Nombre de tu base de datos D1.
- * 
- * Seguridad:
- * - En producción, deberías añadir validación de CORS y autenticación (JWT/API Key).
- * - Por ahora, es abierto para facilitar el desarrollo.
+ * Bindings usados:
+ *   env.R2_BUCKET  → R2 bucket "mirai-apa"
+ *   env.DB         → D1 database "mirai-apa-db"
  */
 
-// Configuración de nombres (deben coincidir con wrangler.toml)
-const R2_BUCKET_NAME = 'mirai-apa-files'; // Cambia esto por tu bucket real
-const D1_DB_NAME = 'mirai-apa-db';        // Cambia esto por tu DB real
-
-/**
- * Manejador principal de solicitudes.
- */
 export default {
-    async fetch(request, env, ctx) {
-        const url = new URL(request.url);
-        const path = url.pathname;
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    const path = url.pathname;
 
-        // Habilitar CORS para desarrollo (ajustar en producción)
-        const corsHeaders = {
-            'Access-Control-Allow-Origin': '*', // O tu dominio específico: 'https://format.aberumirai.com'
-            'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        };
+    const corsHeaders = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    };
 
-        // Manejo de preflight CORS
-        if (request.method === 'OPTIONS') {
-            return new Response(null, { headers: corsHeaders });
-        }
-
-        try {
-            // Rutas
-            if (path === '/api/upload' && request.method === 'POST') {
-                return await handleUpload(request, env, corsHeaders);
-            }
-
-            if (path.startsWith('/api/download/') && request.method === 'GET') {
-                const fileId = path.split('/').pop();
-                return await handleDownload(fileId, env, corsHeaders);
-            }
-
-            if (path === '/api/history' && request.method === 'GET') {
-                return await handleHistory(env, corsHeaders);
-            }
-
-            if (path.startsWith('/api/delete/') && request.method === 'DELETE') {
-                const fileId = path.split('/').pop();
-                return await handleDelete(fileId, env, corsHeaders);
-            }
-
-            if (path === '/api/health' && request.method === 'GET') {
-                return new Response(JSON.stringify({ status: 'ok', service: 'Mirai APA Backend' }), {
-                    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-                });
-            }
-
-            // 404
-            return new Response(JSON.stringify({ error: 'Not Found' }), {
-                status: 404,
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-            });
-
-        } catch (error) {
-            console.error('Worker Error:', error);
-            return new Response(JSON.stringify({ error: 'Internal Server Error', message: error.message }), {
-                status: 500,
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-            });
-        }
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { headers: corsHeaders });
     }
+
+    try {
+      // Health check
+      if (path === '/api/health' && request.method === 'GET') {
+        return json({ status: 'ok', service: 'Mirai APA Backend', version: '1.0.0' }, 200, corsHeaders);
+      }
+
+      // Upload
+      if (path === '/api/upload' && request.method === 'POST') {
+        return await handleUpload(request, env, corsHeaders);
+      }
+
+      // Download
+      if (path.startsWith('/api/download/') && request.method === 'GET') {
+        const fileId = path.replace('/api/download/', '');
+        return await handleDownload(fileId, env, corsHeaders);
+      }
+
+      // History
+      if (path === '/api/history' && request.method === 'GET') {
+        return await handleHistory(request, env, corsHeaders);
+      }
+
+      // Delete
+      if (path.startsWith('/api/delete/') && request.method === 'DELETE') {
+        const fileId = path.replace('/api/delete/', '');
+        return await handleDelete(fileId, env, corsHeaders);
+      }
+
+      return json({ error: 'Not Found' }, 404, corsHeaders);
+
+    } catch (error) {
+      console.error('Worker Error:', error);
+      return json({ error: 'Internal Server Error', message: error.message }, 500, corsHeaders);
+    }
+  }
 };
 
-/**
- * Maneja la subida de archivos (POST /api/upload).
- * Guarda en R2 y registra en D1.
- */
+// ─── Helpers ────────────────────────────────────────────────
+
+function json(data, status = 200, corsHeaders = {}) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
+}
+
+// ─── Handlers ───────────────────────────────────────────────
+
 async function handleUpload(request, env, corsHeaders) {
-    const formData = await request.formData();
-    const file = formData.get('file');
-    const metadataRaw = formData.get('metadata');
+  const formData = await request.formData();
+  const file = formData.get('file');
+  const metadataRaw = formData.get('metadata');
 
-    if (!file) {
-        return new Response(JSON.stringify({ error: 'No file provided' }), {
-            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-    }
+  if (!file) {
+    return json({ error: 'No file provided' }, 400, corsHeaders);
+  }
 
-    try {
-        // Generar ID único para el archivo
-        const fileId = crypto.randomUUID();
-        const fileName = file.name;
-        const fileType = file.type || 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-        const fileSize = file.size;
-        const timestamp = new Date().toISOString();
+  // Validar tipo
+  if (!file.name.toLowerCase().endsWith('.docx')) {
+    return json({ error: 'Invalid file type. Only .DOCX allowed.' }, 400, corsHeaders);
+  }
 
-        // Parsear metadata
-        let metadata = {};
-        try {
-            metadata = JSON.parse(metadataRaw || '{}');
-        } catch (e) {
-            console.warn('Metadata parse error:', e);
-        }
+  // Validar tamaño (25 MB)
+  const MAX_SIZE = 25 * 1024 * 1024;
+  if (file.size > MAX_SIZE) {
+    return json({ error: 'File too large. Maximum 25MB.' }, 413, corsHeaders);
+  }
 
-        // 1. Subir a R2
-        await env[R2_BUCKET_NAME].put(fileId, file.stream(), {
-            httpMetadata: { contentType: fileType },
-            customMetadata: {
-                originalName: fileName,
-                uploadedAt: timestamp,
-                ...metadata
-            }
-        });
+  const fileId = crypto.randomUUID();
+  const timestamp = new Date().toISOString();
+  let metadata = {};
+  try { metadata = JSON.parse(metadataRaw || '{}'); } catch (_) {}
 
-        // 2. Registrar en D1
-        // Asumimos una tabla: files (id, original_name, file_type, size, uploaded_at, user_id, metadata_json)
-        const stmt = env[D1_DB_NAME].prepare(
-            'INSERT INTO files (id, original_name, file_type, size, uploaded_at, user_id, metadata_json) VALUES (?, ?, ?, ?, ?, ?, ?)'
-        );
-        
-        // Nota: user_id es null por ahora (sin autenticación). Si la añades, cámbialo.
-        await stmt.bind(fileId, fileName, fileType, fileSize, timestamp, null, JSON.stringify(metadata)).run();
+  // 1. Subir a R2
+  await env.R2_BUCKET.put(fileId, file.stream(), {
+    httpMetadata: { contentType: file.type || 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' },
+    customMetadata: { originalName: file.name, uploadedAt: timestamp }
+  });
 
-        return new Response(JSON.stringify({
-            success: true,
-            fileId: fileId,
-            message: 'Archivo guardado correctamente',
-            downloadUrl: `/api/download/${fileId}`
-        }), {
-            status: 200,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
+  // 2. Registrar en D1
+  await env.DB
+    .prepare('INSERT INTO files (id, original_name, file_type, size, uploaded_at, user_id, metadata_json) VALUES (?, ?, ?, ?, ?, ?, ?)')
+    .bind(fileId, file.name, file.type, file.size, timestamp, metadata.userId || null, JSON.stringify(metadata))
+    .run();
 
-    } catch (error) {
-        console.error('Upload error:', error);
-        return new Response(JSON.stringify({ error: 'Upload failed', message: error.message }), {
-            status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-    }
+  return json({
+    success: true,
+    fileId,
+    message: 'Archivo guardado correctamente',
+    downloadUrl: `/api/download/${fileId}`,
+    fileName: file.name
+  }, 200, corsHeaders);
 }
 
-/**
- * Maneja la descarga de archivos (GET /api/download/:id).
- * Recupera desde R2.
- */
 async function handleDownload(fileId, env, corsHeaders) {
-    try {
-        const object = await env[R2_BUCKET_NAME].get(fileId);
+  if (!fileId) return json({ error: 'File ID required' }, 400, corsHeaders);
 
-        if (!object) {
-            return new Response(JSON.stringify({ error: 'File not found' }), {
-                status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-            });
-        }
+  const object = await env.R2_BUCKET.get(fileId);
+  if (!object) return json({ error: 'File not found' }, 404, corsHeaders);
 
-        // Obtener metadatos
-        const headers = new Headers();
-        object.writeHttpMetadata(headers);
-        headers.set('Content-Disposition', `attachment; filename="${object.customMetadata.originalName || 'documento.docx'}"`);
+  const headers = new Headers(corsHeaders);
+  object.writeHttpMetadata(headers);
+  headers.set('Content-Disposition', `attachment; filename="${object.customMetadata?.originalName || 'documento.docx'}"`);
+  headers.set('Cache-Control', 'no-cache');
 
-        return new Response(object.body, {
-            headers: { ...corsHeaders, ...headers }
-        });
-
-    } catch (error) {
-        console.error('Download error:', error);
-        return new Response(JSON.stringify({ error: 'Download failed', message: error.message }), {
-            status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-    }
+  return new Response(object.body, { headers });
 }
 
-/**
- * Maneja el historial (GET /api/history).
- * Devuelve lista de archivos desde D1.
- */
-async function handleHistory(env, corsHeaders) {
-    try {
-        // Consulta simple: obtener los últimos 10 archivos
-        // Si añades autenticación, filtra por user_id
-        const { results } = await env[D1_DB_NAME].prepare(
-            'SELECT id, original_name, file_type, size, uploaded_at FROM files ORDER BY uploaded_at DESC LIMIT 10'
-        ).all();
+async function handleHistory(request, env, corsHeaders) {
+  const url = new URL(request.url);
+  const userId = url.searchParams.get('userId');
+  const limit = parseInt(url.searchParams.get('limit') || '10');
+  const offset = parseInt(url.searchParams.get('offset') || '0');
 
-        return new Response(JSON.stringify({ files: results }), {
-            status: 200,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
+  let query, bindings;
+  if (userId) {
+    query = 'SELECT id, original_name, file_type, size, uploaded_at FROM files WHERE user_id = ? ORDER BY uploaded_at DESC LIMIT ? OFFSET ?';
+    bindings = [userId, limit, offset];
+  } else {
+    query = 'SELECT id, original_name, file_type, size, uploaded_at FROM files ORDER BY uploaded_at DESC LIMIT ? OFFSET ?';
+    bindings = [limit, offset];
+  }
 
-    } catch (error) {
-        console.error('History error:', error);
-        return new Response(JSON.stringify({ error: 'History fetch failed', message: error.message }), {
-            status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-    }
+  const { results } = await env.DB.prepare(query).bind(...bindings).all();
+
+  return json({
+    files: results.map(r => ({
+      id: r.id,
+      fileName: r.original_name,
+      fileType: r.file_type,
+      size: r.size,
+      uploadedAt: r.uploaded_at,
+      downloadUrl: `/api/download/${r.id}`
+    }))
+  }, 200, corsHeaders);
 }
 
-/**
- * Maneja la eliminación (DELETE /api/delete/:id).
- * Elimina de R2 y D1.
- */
 async function handleDelete(fileId, env, corsHeaders) {
-    try {
-        // 1. Eliminar de R2
-        await env[R2_BUCKET_NAME].delete(fileId);
+  if (!fileId) return json({ error: 'File ID required' }, 400, corsHeaders);
 
-        // 2. Eliminar de D1
-        await env[D1_DB_NAME].prepare('DELETE FROM files WHERE id = ?').bind(fileId).run();
+  await env.R2_BUCKET.delete(fileId);
+  await env.DB.prepare('DELETE FROM files WHERE id = ?').bind(fileId).run();
 
-        return new Response(JSON.stringify({ success: true, message: 'Archivo eliminado' }), {
-            status: 200,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-
-    } catch (error) {
-        console.error('Delete error:', error);
-        return new Response(JSON.stringify({ error: 'Delete failed', message: error.message }), {
-            status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-    }
+  return json({ success: true, message: 'Archivo eliminado correctamente' }, 200, corsHeaders);
 }

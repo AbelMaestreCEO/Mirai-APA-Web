@@ -2,165 +2,46 @@
 # CONFIGURACIÓN GENERAL DEL WORKER
 # =========================================
 
-# Nombre del Worker (se usará en la URL: https://<name>.workers.dev)
 name = "mirai-apa-web"
-
-# Archivo principal de entrada (ruta relativa a este archivo)
-main = "workers/index.js" 
-
-# Versión de compatibilidad de la API de Cloudflare
+main = "workers/index.js"
 compatibility_date = "2024-01-01"
 
-# Configurar Pages Functions
 [build]
 command = "npm install"
-publish = "public"
-
-# Habilitar flags experimentales si es necesario
-# compatibility_flags = ["nodejs_compat"]
 
 # =========================================
 # BINDINGS DE RECURSOS
 # =========================================
 
-# --- R2 Bucket (Almacenamiento de Archivos) ---
+# IMPORTANTE: el "binding" es el nombre que usas en el código como env.NOMBRE
 [[r2_buckets]]
-binding = "mirai-apa"          # Variable en el código (env.R2_BUCKET_NAME)
-bucket_name = "mirai-apa"     # Nombre real del bucket en Cloudflare
+binding = "R2_BUCKET"          # En el código: env.R2_BUCKET
+bucket_name = "mirai-apa"      # Nombre real del bucket en Cloudflare
 
-# --- D1 Database (Base de Datos SQL) ---
 [[d1_databases]]
-binding = "mirai-apa-db"              # Variable en el código (env.D1_DB_NAME)
-database_name = "mirai-apa-db"      # Nombre real de la DB en Cloudflare
-database_id = "3e137a15-c354-4ac3-ad37-85660d7e79ca" # ID UUID de la DB (obtener tras crearla)
+binding = "DB"                          # En el código: env.DB
+database_name = "mirai-apa-db"          # Nombre real de la DB en Cloudflare
+database_id = "3e137a15-c354-4ac3-ad37-85660d7e79ca"
 
 # =========================================
 # VARIABLES DE ENTORNO
 # =========================================
 
 [vars]
-# Variables accesibles como env.VARIABLE_NAME en el código
 ENVIRONMENT = "production"
 SERVICE_NAME = "Mirai APA Backend"
 VERSION = "1.0.0"
 MAX_FILE_SIZE_MB = "25"
-ALLOWED_ORIGINS = "https://aberumirai.com"
+ALLOWED_ORIGINS = "https://mirai-apa-web.pages.dev"
 
 # =========================================
-# SECRETOS (NO COMMITAR AL GIT)
+# ENTORNOS
 # =========================================
 
-# Para añadir secretos, usa: wrangler secret put SECRET_NAME
-# Ejemplo: wrangler secret put JWT_SECRET
-# Luego accedes como: env.JWT_SECRET
-
-# =========================================
-# RUTAS (OPCIONAL - Si usas un dominio personalizado)
-# =========================================
-
-# Si tienes un dominio personalizado configurado en Cloudflare,
-# puedes mapear rutas específicas a este worker.
-# [routes]
-# pattern = "format.aberumirai.com/api/*"
-# zone_name = "aberumirai.com"
-
-# =========================================
-# BUILD & DESPLIEGUE (Si usas bundler)
-# =========================================
-
-# Si usas Vite, Webpack, o esbuild para bundle:
-# [build]
-# command = "npm run build"
-# watch_dir = "src"
-
-# [build.upload]
-# format = "modules"
-# dir = "dist"
-# main = "index.js"
-# rules = [
-#   { type = "ESModule", globs = ["**/*.js"] },
-#   { type = "Text", globs = ["**/*.txt"] }
-# ]
-
-# =========================================
-# ENTORNOS (Development, Staging, Production)
-# =========================================
-
-# Entorno de desarrollo (local)
 [dev]
 port = 8787
 local_protocol = "http"
 
-# Entorno de staging (pruebas)
-[env.staging]
-name = "mirai-apa-worker-staging"
-vars = { ENVIRONMENT = "staging", ALLOWED_ORIGINS = "https://staging.aberumirai.com" }
-
-# Entorno de producción
 [env.production]
-name = "mirai-apa-worker-production"
+name = "mirai-apa-web"
 vars = { ENVIRONMENT = "production", ALLOWED_ORIGINS = "https://format.aberumirai.com" }
-
-# =========================================
-# LOGGING & MONITORIZACIÓN
-# =========================================
-
-# Habilitar logs de observability (Cloudflare Logs)
-# [observability]
-# enabled = true
-# head_sampling_rate = 1
-
-# =========================================
-# MIGRACIONES DE D1 (OPCIONAL)
-# =========================================
-
-# Si usas migraciones SQL para D1:
-# [[d1_databases.migrations]]
-# binding = "D1_DB_NAME"
-# migrations_dir = "./migrations"
-
-# =========================================
-# COMANDOS ÚTILES
-# =========================================
-
-# Para ver la configuración:
-#   wrangler tail
-#   wrangler whoami
-#   wrangler kv:key list
-
-# Para desplegar:
-#   wrangler deploy
-
-# Para ver logs en tiempo real:
-#   wrangler tail
-
-# Para añadir un secreto:
-#   wrangler secret put SECRET_NAME
-
-# Para crear la DB D1:
-#   wrangler d1 create mirai-apa-db
-
-# Para aplicar migraciones a D1:
-#   wrangler d1 migrations apply mirai-apa-db
-
-# Para listar buckets R2:
-#   wrangler r2 bucket list
-
-# =========================================
-# NOTAS IMPORTANTES
-# =========================================
-
-# 1. Antes del primer deploy, debes:
-#    - Crear el bucket R2: wrangler r2 bucket create mirai-apa-files
-#    - Crear la DB D1: wrangler d1 create mirai-apa-db
-#    - Actualizar database_id en este archivo con el ID retornado
-#    - Crear la tabla en D1 con el SQL proporcionado
-
-# 2. Nunca commits secrets o credentials a Git
-
-# 3. Para desarrollo local, usa: wrangler dev
-
-# 4. Para producción, usa: wrangler deploy --env production
-
-# 5. El CORS debe configurarse también en tu frontend (index.html)
-#    y en el código del worker (routes.js o index.js)
