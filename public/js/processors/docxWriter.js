@@ -1,9 +1,12 @@
 /**
  * js/processors/docxWriter.js
- * API corregida para docx v8.x
+ * API para docx v8.x — compatible con UMD en navegador
  *
- * CLAVE: En docx v8, NO existe `new Section(...)`.
- * sections[] es un array de OBJETOS PLANOS dentro de new Document({}).
+ * Fixes:
+ * - font debe ser { name: 'Times New Roman' } no string en v8
+ * - Packer.toBlob() para navegador
+ * - mergeRuns evita texto letra por letra
+ * - Document con creator evita modo borrador
  */
 
 function getDocxLib() {
@@ -12,68 +15,86 @@ function getDocxLib() {
     if (c?.Document) return c;
     if (c?.docx?.Document) return c.docx;
   }
-  throw new Error('Librería docx no encontrada. Carga docx.umd.js antes de este archivo.');
+  throw new Error('Libreria docx no encontrada.');
+}
+
+function makeRun(docx, { text, bold = false, italic = false, size = 24 }) {
+  return new docx.TextRun({
+    text: String(text ?? ''),
+    bold,
+    italics: italic,
+    size,
+    font: { name: 'Times New Roman' },
+  });
+}
+
+function mergeRuns(runs) {
+  const merged = [];
+  for (const r of runs) {
+    const last = merged[merged.length - 1];
+    if (last && !!last.bold === !!r.bold && !!last.italic === !!r.italic) {
+      last.text += r.text;
+    } else {
+      merged.push({ text: r.text ?? '', bold: !!r.bold, italic: !!r.italic });
+    }
+  }
+  return merged;
 }
 
 export async function generateDocx(data, options = {}) {
   const docx = getDocxLib();
-  const {
-    Document, Paragraph, TextRun, Header, Footer,
-    Packer, AlignmentType, LineRuleType,
-    Table, TableRow, TableCell, WidthType, BorderStyle,
-    ImageRun, PageNumber,
-  } = docx;
+  const { Document, Paragraph, Header, Footer, Packer, AlignmentType,
+          LineRuleType, Table, TableRow, TableCell, WidthType, BorderStyle,
+          ImageRun, PageNumber } = docx;
 
   const { paragraphs = [], tables = [], images = [] } = data;
-  const {
-    title = 'Título del Documento', author = 'Autor',
-    affiliation = '', course = '', instructor = '', date = '',
-  } = options;
+  const { title = 'Titulo del Documento', author = 'Autor',
+          affiliation = '', course = '', instructor = '', date = '' } = options;
 
-  console.log('[DocxWriter]: Iniciando generación del documento...');
+  console.log('[DocxWriter]: Iniciando generacion del documento...');
 
   const emu = (inches) => Math.round(inches * 914400);
-  const lr = LineRuleType ? LineRuleType.AUTO : 'auto';
+  const lr  = LineRuleType?.AUTO ?? 'auto';
 
   const emptyLine = () => new Paragraph({
     children: [],
     spacing: { line: 480, lineRule: lr, before: 0, after: 0 },
   });
 
-  const centeredText = (text, bold = false) => new Paragraph({
+  const centeredParagraph = (text, bold = false) => new Paragraph({
     alignment: AlignmentType.CENTER,
     spacing: { line: 480, lineRule: lr, before: 0, after: 0 },
     indent: { firstLine: 0 },
-    children: [new TextRun({ text, bold, size: 24, font: 'Times New Roman' })],
+    children: [makeRun(docx, { text, bold })],
   });
 
-  // ── PORTADA ──
+  // PORTADA
   const titlePageChildren = [];
   for (let i = 0; i < 5; i++) titlePageChildren.push(emptyLine());
-  if (title)       titlePageChildren.push(centeredText(title, true));
-  if (author)      titlePageChildren.push(centeredText(author));
-  if (affiliation) titlePageChildren.push(centeredText(affiliation));
-  if (course)      titlePageChildren.push(centeredText(course));
-  if (instructor)  titlePageChildren.push(centeredText(instructor));
-  if (date)        titlePageChildren.push(centeredText(date));
+  if (title)       titlePageChildren.push(centeredParagraph(title, true));
+  if (author)      titlePageChildren.push(centeredParagraph(author));
+  if (affiliation) titlePageChildren.push(centeredParagraph(affiliation));
+  if (course)      titlePageChildren.push(centeredParagraph(course));
+  if (instructor)  titlePageChildren.push(centeredParagraph(instructor));
+  if (date)        titlePageChildren.push(centeredParagraph(date));
   for (let i = 0; i < 3; i++) titlePageChildren.push(emptyLine());
   console.log('[DocxWriter]: Portada generada.');
 
-  // ── CUERPO ──
+  // CUERPO
   const bodyChildren = [];
 
   if (data.abstract) {
     bodyChildren.push(new Paragraph({
       alignment: AlignmentType.CENTER,
       spacing: { line: 480, lineRule: lr, before: 0, after: 0 },
-      children: [new TextRun({ text: 'Resumen', bold: true, size: 24, font: 'Times New Roman' })],
+      children: [makeRun(docx, { text: 'Resumen', bold: true })],
     }));
     if (data.abstract.body) {
       bodyChildren.push(new Paragraph({
         alignment: AlignmentType.LEFT,
         spacing: { line: 480, lineRule: lr, before: 0, after: 0 },
         indent: { firstLine: 0 },
-        children: [new TextRun({ text: data.abstract.body, size: 24, font: 'Times New Roman' })],
+        children: [makeRun(docx, { text: data.abstract.body })],
       }));
     }
     if (data.abstract.keywords?.length) {
@@ -82,54 +103,39 @@ export async function generateDocx(data, options = {}) {
         spacing: { line: 480, lineRule: lr, before: 240, after: 0 },
         indent: { firstLine: 0 },
         children: [
-          new TextRun({ text: 'Palabras clave:', italics: true, size: 24, font: 'Times New Roman' }),
-          new TextRun({ text: ' ' + data.abstract.keywords.join(', '), size: 24, font: 'Times New Roman' }),
+          makeRun(docx, { text: 'Palabras clave:', italic: true }),
+          makeRun(docx, { text: ' ' + data.abstract.keywords.join(', ') }),
         ],
       }));
     }
   }
 
-  for (const p of paragraphs) {
-    const para = convertParagraph(p, docx, lr);
-    if (para) bodyChildren.push(para);
-  }
-  for (const t of tables) {
-    const tbl = convertTable(t, docx);
-    if (tbl) bodyChildren.push(tbl);
-  }
-  for (const img of images) {
-    const imgPara = convertImage(img, docx);
-    if (imgPara) bodyChildren.push(imgPara);
-  }
+  for (const p of paragraphs)  { const x = convertParagraph(p, docx, lr); if (x) bodyChildren.push(x); }
+  for (const t of tables)      { const x = convertTable(t, docx);         if (x) bodyChildren.push(x); }
+  for (const img of images)    { const x = convertImage(img, docx);       if (x) bodyChildren.push(x); }
 
-  // ── HEADER ──
-  // Número de página APA: esquina superior derecha
-  // Usamos el campo PAGE de OOXML directamente para máxima compatibilidad
+  // HEADER
   const pageHeader = new Header({
     children: [new Paragraph({
       alignment: AlignmentType.RIGHT,
       spacing: { before: 0, after: 0 },
-      children: [
-        new TextRun({
-          children: [PageNumber.CURRENT],
-          size: 24,
-          font: 'Times New Roman',
-        }),
-      ],
+      children: [new docx.TextRun({
+        children: [PageNumber.CURRENT],
+        size: 24,
+        font: { name: 'Times New Roman' },
+      })],
     })],
   });
+
   const pageFooter = new Footer({ children: [emptyLine()] });
 
-  // ── DOCUMENTO ──
-  // creator/description evitan que Word abra el archivo en modo "borrador"
+  // DOCUMENTO
   const doc = new Document({
     creator: 'Mirai APA',
     description: 'Documento formateado en APA 7',
     sections: [{
       properties: {
-        page: {
-          margin: { top: emu(1), right: emu(1), bottom: emu(1), left: emu(1) },
-        },
+        page: { margin: { top: emu(1), right: emu(1), bottom: emu(1), left: emu(1) } },
       },
       headers: { default: pageHeader },
       footers: { default: pageFooter },
@@ -139,15 +145,13 @@ export async function generateDocx(data, options = {}) {
 
   console.log('[DocxWriter]: Empaquetando documento...');
 
-  // Packer.toBuffer() es solo Node.js — en el navegador se usa toBlob() o toBase64()
   let blob;
   if (typeof Packer.toBlob === 'function') {
     blob = await Packer.toBlob(doc);
   } else {
-    // Fallback: toBase64 → decodificar manualmente a Blob
     const base64 = await Packer.toBase64String(doc);
     const binary = atob(base64);
-    const bytes = new Uint8Array(binary.length);
+    const bytes  = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
     blob = new Blob([bytes], {
       type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -160,13 +164,13 @@ export async function generateDocx(data, options = {}) {
 
 function convertParagraph(p, docx, lr) {
   if (!p) return null;
-  const { Paragraph, TextRun, AlignmentType } = docx;
-  const type = p.type || 'body';
+  const { Paragraph, AlignmentType } = docx;
+  const type  = p.type  || 'body';
   const level = p.level || 0;
 
-  let alignment = AlignmentType.LEFT;
-  let forceBold = false, forceItalic = false;
-  let firstLine = 720, hanging = 0, leftIndent = 0, spacingBefore = 0;
+  let alignment    = AlignmentType.LEFT;
+  let forceBold    = false, forceItalic = false;
+  let firstLine    = 720, hanging = 0, leftIndent = 0, spacingBefore = 0;
 
   switch (type) {
     case 'heading':
@@ -183,57 +187,41 @@ function convertParagraph(p, docx, lr) {
       break;
   }
 
-  // Consolidar runs con el mismo formato para evitar fragmentación de texto
-  // (múltiples TextRun de un carácter causan el bug "letra por letra" en Word)
   const rawRuns = (p.runs && p.runs.length > 0)
     ? p.runs
-    : [{ text: p.text || '', bold: false, italic: false }];
+    : [{ text: p.text ?? '', bold: false, italic: false }];
 
-  // Merge de runs consecutivos con idéntico formato bold+italic
-  const mergedRuns = [];
-  for (const r of rawRuns) {
-    const last = mergedRuns[mergedRuns.length - 1];
-    if (last && last.bold === r.bold && last.italic === r.italic) {
-      last.text += r.text;
-    } else {
-      mergedRuns.push({ text: r.text, bold: r.bold || false, italic: r.italic || false });
-    }
-  }
-
-  const children = mergedRuns.map(r => new TextRun({
-    text: r.text,
-    bold: forceBold || r.bold,
-    italics: forceItalic || r.italic,
-    size: 24,
-    font: 'Times New Roman',
+  const children = mergeRuns(rawRuns).map(r => makeRun(docx, {
+    text:   r.text,
+    bold:   forceBold   || r.bold,
+    italic: forceItalic || r.italic,
   }));
 
   return new Paragraph({
     alignment,
     spacing: { line: 480, lineRule: lr, before: spacingBefore, after: 0 },
-    indent: { firstLine, hanging, left: leftIndent },
+    indent:  { firstLine, hanging, left: leftIndent },
     children,
   });
 }
 
 function convertTable(t, docx) {
   if (!t?.rows?.length) return null;
-  const { Table, TableRow, TableCell, Paragraph, TextRun, AlignmentType, WidthType, BorderStyle } = docx;
-  const none = { style: BorderStyle.NONE, size: 0, color: 'auto' };
+  const { Table, TableRow, TableCell, Paragraph, AlignmentType, WidthType, BorderStyle } = docx;
+  const none = { style: BorderStyle.NONE,   size: 0, color: 'auto' };
   const line = { style: BorderStyle.SINGLE, size: 4, color: '000000' };
 
   return new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     rows: t.rows.map((cells, ri) => new TableRow({
       children: (Array.isArray(cells) ? cells : []).map((cell) => {
-        const txt = typeof cell === 'string' ? cell : (cell?.text || '');
-        const isNum = /^[+-]?[\d.,\s%$€]+$/.test(txt.trim());
-        const isH = ri === 0;
+        const txt  = typeof cell === 'string' ? cell : (cell?.text ?? '');
+        const isH  = ri === 0;
         return new TableCell({
           borders: { top: isH ? line : none, bottom: isH ? line : none, left: none, right: none },
           children: [new Paragraph({
-            alignment: isNum ? AlignmentType.RIGHT : AlignmentType.LEFT,
-            children: [new TextRun({ text: txt, bold: isH, size: 20, font: 'Times New Roman' })],
+            alignment: /^[+-]?[\d.,\s%$€]+$/.test(txt.trim()) ? AlignmentType.RIGHT : AlignmentType.LEFT,
+            children:  [makeRun(docx, { text: txt, bold: isH, size: 20 })],
           })],
         });
       }),
@@ -266,7 +254,7 @@ function convertImage(img, docx) {
 export function downloadBlob(blob, filename = 'documento_apa.docx') {
   if (typeof saveAs !== 'undefined') { saveAs(blob, filename); return; }
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const a   = document.createElement('a');
   a.href = url; a.download = filename;
   document.body.appendChild(a); a.click();
   document.body.removeChild(a); URL.revokeObjectURL(url);

@@ -162,8 +162,16 @@ function extractRunsFromElement(el) {
         if (node.nodeType !== Node.ELEMENT_NODE) return;
 
         const tag = node.tagName.toLowerCase();
+
+        // <br> se convierte en espacio para no perder separación
+        if (tag === 'br') {
+            runs.push({ text: ' ', bold, italic });
+            return;
+        }
+
         const isBold   = bold   || tag === 'strong' || tag === 'b';
         const isItalic = italic || tag === 'em'     || tag === 'i';
+        // <span> y otros tags inline no cambian formato por sí solos
 
         for (const child of node.childNodes) {
             walk(child, isBold, isItalic);
