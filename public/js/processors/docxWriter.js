@@ -103,17 +103,28 @@ export async function generateDocx(data, options = {}) {
   }
 
   // ── HEADER ──
+  // Número de página APA: esquina superior derecha
+  // Usamos el campo PAGE de OOXML directamente para máxima compatibilidad
   const pageHeader = new Header({
     children: [new Paragraph({
       alignment: AlignmentType.RIGHT,
-      children: [new TextRun({ children: [PageNumber.CURRENT], size: 24, font: 'Times New Roman' })],
+      spacing: { before: 0, after: 0 },
+      children: [
+        new TextRun({
+          children: [PageNumber.CURRENT],
+          size: 24,
+          font: 'Times New Roman',
+        }),
+      ],
     })],
   });
   const pageFooter = new Footer({ children: [emptyLine()] });
 
   // ── DOCUMENTO ──
-  // ✅ CORRECTO para docx v8: sections es array de objetos planos, NO new Section()
+  // creator/description evitan que Word abra el archivo en modo "borrador"
   const doc = new Document({
+    creator: 'Mirai APA',
+    description: 'Documento formateado en APA 7',
     sections: [{
       properties: {
         page: {
@@ -172,16 +183,27 @@ function convertParagraph(p, docx, lr) {
       break;
   }
 
-  // Usar los runs individuales si existen (preservan bold/italic por fragmento)
-  // Si no hay runs (compatibilidad hacia atrás), usar p.text como un único run
-  const sourceRuns = (p.runs && p.runs.length > 0)
+  // Consolidar runs con el mismo formato para evitar fragmentación de texto
+  // (múltiples TextRun de un carácter causan el bug "letra por letra" en Word)
+  const rawRuns = (p.runs && p.runs.length > 0)
     ? p.runs
     : [{ text: p.text || '', bold: false, italic: false }];
 
-  const children = sourceRuns.map(r => new TextRun({
+  // Merge de runs consecutivos con idéntico formato bold+italic
+  const mergedRuns = [];
+  for (const r of rawRuns) {
+    const last = mergedRuns[mergedRuns.length - 1];
+    if (last && last.bold === r.bold && last.italic === r.italic) {
+      last.text += r.text;
+    } else {
+      mergedRuns.push({ text: r.text, bold: r.bold || false, italic: r.italic || false });
+    }
+  }
+
+  const children = mergedRuns.map(r => new TextRun({
     text: r.text,
-    bold: forceBold || r.bold || false,
-    italics: forceItalic || r.italic || false,
+    bold: forceBold || r.bold,
+    italics: forceItalic || r.italic,
     size: 24,
     font: 'Times New Roman',
   }));
