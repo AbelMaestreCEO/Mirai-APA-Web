@@ -127,10 +127,22 @@ export async function generateDocx(data, options = {}) {
   });
 
   console.log('[DocxWriter]: Empaquetando documento...');
-  const buffer = await Packer.toBuffer(doc);
-  const blob = new Blob([buffer], {
-    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  });
+
+  // Packer.toBuffer() es solo Node.js — en el navegador se usa toBlob() o toBase64()
+  let blob;
+  if (typeof Packer.toBlob === 'function') {
+    blob = await Packer.toBlob(doc);
+  } else {
+    // Fallback: toBase64 → decodificar manualmente a Blob
+    const base64 = await Packer.toBase64String(doc);
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    blob = new Blob([bytes], {
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    });
+  }
+
   console.log('[DocxWriter]: Documento generado exitosamente.');
   return blob;
 }
