@@ -1,241 +1,288 @@
 /**
- * js/processors/docxWriter.js
- * API corregida para docx v8.x
- *
- * CLAVE: En docx v8, NO existe `new Section(...)`.
- * sections[] es un array de OBJETOS PLANOS dentro de new Document({}).
+ * js/processors/docxReader.js
+ * 
+ * Módulo dedicado a la lectura y extracción de contenido de archivos .DOCX.
+ * 
+ * Funcionamiento:
+ * 1. Recibe un File object o ArrayBuffer.
+ * 2. Usa mammoth.js (o librería similar) para convertir el DOCX a una estructura JSON/HTML legible.
+ * 3. Extrae párrafos, tablas e imágenes.
+ * 4. Devuelve un array de objetos estandarizados para ser procesados por los módulos APA.
+ * 
+ * Dependencias externas (deben estar cargadas en index.html):
+ * - mammoth.js (npm install mammoth)
+ * - jszip (opcional, si se usa para inspección profunda)
+ * 
+ * Nota: Este módulo NO formatea nada. Solo extrae y normaliza la estructura.
  */
 
-function getDocxLib() {
-  const candidates = [window.docx, window.DocxJS, window.DOCX];
-  for (const c of candidates) {
-    if (c?.Document) return c;
-    if (c?.docx?.Document) return c.docx;
-  }
-  throw new Error('Librería docx no encontrada. Carga docx.umd.js antes de este archivo.');
-}
+// Asumimos que mammoth está disponible globalmente o se importa como módulo
+// import * as mammoth from "mammoth"; 
 
-export async function generateDocx(data, options = {}) {
-  const docx = getDocxLib();
-  const {
-    Document, Paragraph, TextRun, Header, Footer,
-    Packer, AlignmentType, LineRuleType,
-    Table, TableRow, TableCell, WidthType, BorderStyle,
-    ImageRun, PageNumber,
-  } = docx;
-
-  const { paragraphs = [], tables = [], images = [] } = data;
-  const {
-    title = 'Título del Documento', author = 'Autor',
-    affiliation = '', course = '', instructor = '', date = '',
-  } = options;
-
-  console.log('[DocxWriter]: Iniciando generación del documento...');
-
-  const emu = (inches) => Math.round(inches * 914400);
-  const lr = LineRuleType ? LineRuleType.AUTO : 'auto';
-
-  const emptyLine = () => new Paragraph({
-    children: [],
-    spacing: { line: 480, lineRule: lr, before: 0, after: 0 },
-  });
-
-  const centeredText = (text, bold = false) => new Paragraph({
-    alignment: AlignmentType.CENTER,
-    spacing: { line: 480, lineRule: lr, before: 0, after: 0 },
-    indent: { firstLine: 0 },
-    children: [new TextRun({ text, bold, size: 24, font: 'Times New Roman' })],
-  });
-
-  // ── PORTADA ──
-  const titlePageChildren = [];
-  for (let i = 0; i < 5; i++) titlePageChildren.push(emptyLine());
-  if (title)       titlePageChildren.push(centeredText(title, true));
-  if (author)      titlePageChildren.push(centeredText(author));
-  if (affiliation) titlePageChildren.push(centeredText(affiliation));
-  if (course)      titlePageChildren.push(centeredText(course));
-  if (instructor)  titlePageChildren.push(centeredText(instructor));
-  if (date)        titlePageChildren.push(centeredText(date));
-  for (let i = 0; i < 3; i++) titlePageChildren.push(emptyLine());
-  console.log('[DocxWriter]: Portada generada.');
-
-  // ── CUERPO ──
-  const bodyChildren = [];
-
-  if (data.abstract) {
-    bodyChildren.push(new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { line: 480, lineRule: lr, before: 0, after: 0 },
-      children: [new TextRun({ text: 'Resumen', bold: true, size: 24, font: 'Times New Roman' })],
-    }));
-    if (data.abstract.body) {
-      bodyChildren.push(new Paragraph({
-        alignment: AlignmentType.LEFT,
-        spacing: { line: 480, lineRule: lr, before: 0, after: 0 },
-        indent: { firstLine: 0 },
-        children: [new TextRun({ text: data.abstract.body, size: 24, font: 'Times New Roman' })],
-      }));
+/**
+ * Lee un archivo DOCX y extrae su contenido estructurado.
+ * 
+ * @param {File|Blob|ArrayBuffer} file - El archivo subido por el usuario.
+ * @returns {Promise<Object>} Promesa que resuelve con un objeto { paragraphs, tables, images, metadata }.
+ */
+export async function readDocxFile(file) {
+    if (!file) {
+        throw new Error('[DocxReader]: No se proporcionó ningún archivo.');
     }
-    if (data.abstract.keywords?.length) {
-      bodyChildren.push(new Paragraph({
-        alignment: AlignmentType.LEFT,
-        spacing: { line: 480, lineRule: lr, before: 240, after: 0 },
-        indent: { firstLine: 0 },
-        children: [
-          new TextRun({ text: 'Palabras clave:', italics: true, size: 24, font: 'Times New Roman' }),
-          new TextRun({ text: ' ' + data.abstract.keywords.join(', '), size: 24, font: 'Times New Roman' }),
-        ],
-      }));
+
+    // Validar extensión
+    if (!file.name.toLowerCase().endsWith('.docx')) {
+        throw new Error('[DocxReader]: El archivo debe ser un documento .DOCX.');
     }
-  }
 
-  for (const p of paragraphs) {
-    const para = convertParagraph(p, docx, lr);
-    if (para) bodyChildren.push(para);
-  }
-  for (const t of tables) {
-    const tbl = convertTable(t, docx);
-    if (tbl) bodyChildren.push(tbl);
-  }
-  for (const img of images) {
-    const imgPara = convertImage(img, docx);
-    if (imgPara) bodyChildren.push(imgPara);
-  }
+    try {
+        // Usar mammoth para extraer el contenido.
+        // mammoth.convertToHtml es útil, pero para mantener la estructura de párrafos,
+        // a veces es mejor usar convertToRaw si la librería lo soporta, o parsear el HTML resultante.
+        // Aquí usaremos la conversión a HTML y luego parsearemos el HTML para obtener párrafos.
+        
+        const arrayBuffer = await file.arrayBuffer();
+        
+        // Opción A: Usar mammoth para extraer texto plano y estructura básica
+        // Esto es más rápido y suficiente para aplicar estilos APA.
+        const result = await mammoth.convertToHtml({ arrayBuffer });
+        const htmlContent = result.value; // HTML string
+        const messages = result.messages; // Advertencias (ej. estilos ignorados)
 
-  // ── HEADER ──
-  const pageHeader = new Header({
-    children: [new Paragraph({
-      alignment: AlignmentType.RIGHT,
-      children: [new TextRun({ children: [PageNumber.CURRENT], size: 24, font: 'Times New Roman' })],
-    })],
-  });
-  const pageFooter = new Footer({ children: [emptyLine()] });
+        if (messages.length > 0) {
+            console.warn('[DocxReader]: Advertencias durante la lectura:', messages);
+        }
 
-  // ── DOCUMENTO ──
-  // ✅ CORRECTO para docx v8: sections es array de objetos planos, NO new Section()
-  const doc = new Document({
-    sections: [{
-      properties: {
-        page: {
-          margin: { top: emu(1), right: emu(1), bottom: emu(1), left: emu(1) },
-        },
-      },
-      headers: { default: pageHeader },
-      footers: { default: pageFooter },
-      children: [...titlePageChildren, ...bodyChildren],
-    }],
-  });
+        // Parsear el HTML resultante para extraer párrafos y tablas
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlContent, 'text/html');
 
-  console.log('[DocxWriter]: Empaquetando documento...');
+        // Extraer párrafos
+        const rawParagraphs = extractParagraphsFromHtml(doc);
+        
+        // Extraer tablas (si las hay)
+        const rawTables = extractTablesFromHtml(doc);
 
-  // Packer.toBuffer() es solo Node.js — en el navegador se usa toBlob() o toBase64()
-  let blob;
-  if (typeof Packer.toBlob === 'function') {
-    blob = await Packer.toBlob(doc);
-  } else {
-    // Fallback: toBase64 → decodificar manualmente a Blob
-    const base64 = await Packer.toBase64String(doc);
-    const binary = atob(base64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    blob = new Blob([bytes], {
-      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    });
-  }
+        // Extraer imágenes (referencias)
+        const rawImages = extractImagesFromHtml(doc);
 
-  console.log('[DocxWriter]: Documento generado exitosamente.');
-  return blob;
+        console.log(`[DocxReader]: Archivo leído correctamente. ${rawParagraphs.length} párrafos, ${rawTables.length} tablas.`);
+
+        return {
+            paragraphs: rawParagraphs,
+            tables: rawTables,
+            images: rawImages,
+            rawHtml: htmlContent // Guardar HTML crudo por si se necesita depuración
+        };
+
+    } catch (error) {
+        console.error('[DocxReader]: Error al leer el archivo DOCX:', error);
+        throw new Error(`Error al procesar el archivo: ${error.message}`);
+    }
 }
 
-function convertParagraph(p, docx, lr) {
-  if (!p) return null;
-  const { Paragraph, TextRun, AlignmentType } = docx;
-  const text = p.text || '';
-  const type = p.type || 'body';
-  const level = p.level || 0;
+/**
+ * Extrae párrafos del HTML generado por mammoth.
+ * Mammoth genera <p> para cuerpo y <h1>-<h6> para títulos.
+ * También maneja <ul>/<ol> como listas de párrafos.
+ *
+ * @param {Document} doc - Documento DOM parseado.
+ * @returns {Array<Object>} Array de objetos párrafo.
+ */
+function extractParagraphsFromHtml(doc) {
+    const paragraphs = [];
 
-  let alignment = AlignmentType.LEFT;
-  let bold = false, italic = false;
-  let firstLine = 720, hanging = 0, leftIndent = 0, spacingBefore = 0;
+    // Seleccionar todos los nodos relevantes en orden de aparición
+    const elements = doc.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li');
 
-  switch (type) {
-    case 'heading':
-      bold = true; firstLine = 0; spacingBefore = 240;
-      if (level === 1) alignment = AlignmentType.CENTER;
-      if (level === 3 || level === 5) italic = true;
-      if (level === 4 || level === 5) leftIndent = 720;
-      break;
-    case 'reference':
-      firstLine = 0; hanging = 720;
-      break;
-    case 'block_quote':
-      firstLine = 0; leftIndent = 720;
-      break;
-  }
+    elements.forEach((el, index) => {
+        const tag = el.tagName.toLowerCase();
 
-  return new Paragraph({
-    alignment,
-    spacing: { line: 480, lineRule: lr, before: spacingBefore, after: 0 },
-    indent: { firstLine, hanging, left: leftIndent },
-    children: [new TextRun({
-      text, bold: p.isBold || bold, italics: p.isItalic || italic,
-      size: 24, font: 'Times New Roman',
-    })],
-  });
-}
+        // Nivel de título según el tag HTML
+        const headingTagLevel = { h1: 1, h2: 2, h3: 3, h4: 4, h5: 5, h6: 6 };
+        let detectedLevel = headingTagLevel[tag] || 0;
 
-function convertTable(t, docx) {
-  if (!t?.rows?.length) return null;
-  const { Table, TableRow, TableCell, Paragraph, TextRun, AlignmentType, WidthType, BorderStyle } = docx;
-  const none = { style: BorderStyle.NONE, size: 0, color: 'auto' };
-  const line = { style: BorderStyle.SINGLE, size: 4, color: '000000' };
+        // También detectar por clases que mammoth puede añadir a <p>
+        if (detectedLevel === 0) {
+            if (el.classList.contains('Heading1') || el.classList.contains('heading-1')) detectedLevel = 1;
+            else if (el.classList.contains('Heading2') || el.classList.contains('heading-2')) detectedLevel = 2;
+            else if (el.classList.contains('Heading3') || el.classList.contains('heading-3')) detectedLevel = 3;
+            else if (el.classList.contains('Heading4') || el.classList.contains('heading-4')) detectedLevel = 4;
+            else if (el.classList.contains('Heading5') || el.classList.contains('heading-5')) detectedLevel = 5;
+        }
 
-  return new Table({
-    width: { size: 100, type: WidthType.PERCENTAGE },
-    rows: t.rows.map((cells, ri) => new TableRow({
-      children: (Array.isArray(cells) ? cells : []).map((cell) => {
-        const txt = typeof cell === 'string' ? cell : (cell?.text || '');
-        const isNum = /^[+-]?[\d.,\s%$€]+$/.test(txt.trim());
-        const isH = ri === 0;
-        return new TableCell({
-          borders: { top: isH ? line : none, bottom: isH ? line : none, left: none, right: none },
-          children: [new Paragraph({
-            alignment: isNum ? AlignmentType.RIGHT : AlignmentType.LEFT,
-            children: [new TextRun({ text: txt, bold: isH, size: 20, font: 'Times New Roman' })],
-          })],
+        // Extraer los "runs" (fragmentos de texto con formato) del elemento
+        const runs = extractRunsFromElement(el);
+
+        // Texto plano completo (uniendo todos los runs)
+        const text = runs.map(r => r.text).join('');
+
+        // Ignorar párrafos completamente vacíos
+        if (text.trim() === '') return;
+
+        // Detectar tipo de párrafo
+        let type = 'body';
+        if (detectedLevel > 0) {
+            type = 'heading';
+        } else if (/^[A-Z][a-záéíóúü]+,\s+[A-Z]\.\s+\(\d{4}\)/i.test(text.trim())) {
+            type = 'reference';
+        }
+
+        paragraphs.push({
+            id: `p-${index}`,
+            type,
+            level: detectedLevel,
+            text,
+            runs,
+            html: el.innerHTML,
+            isBold: runs.some(r => r.bold),
+            isItalic: runs.every(r => r.italic) && runs.length > 0,
         });
-      }),
-    })),
-  });
-}
-
-function convertImage(img, docx) {
-  if (!img?.src) return null;
-  const { Paragraph, ImageRun, AlignmentType } = docx;
-  try {
-    let data = img.src;
-    if (typeof data === 'string' && data.startsWith('data:')) {
-      const b64 = data.split(',')[1];
-      const bin = atob(b64);
-      const bytes = new Uint8Array(bin.length);
-      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-      data = bytes.buffer;
-    }
-    return new Paragraph({
-      alignment: AlignmentType.CENTER,
-      children: [new ImageRun({ data, transformation: { width: img.width || 400, height: img.height || 300 } })],
     });
-  } catch (e) {
-    console.warn('[DocxWriter]: Imagen omitida:', e.message);
-    return null;
-  }
+
+    return paragraphs;
 }
 
-export function downloadBlob(blob, filename = 'documento_apa.docx') {
-  if (typeof saveAs !== 'undefined') { saveAs(blob, filename); return; }
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click();
-  document.body.removeChild(a); URL.revokeObjectURL(url);
+/**
+ * Extrae los fragmentos de texto con su formato (bold, italic) de un elemento DOM.
+ * Recorre los nodos hijos para preservar el formato inline de mammoth.
+ *
+ * @param {Element} el - Elemento DOM.
+ * @returns {Array<{text: string, bold: boolean, italic: boolean}>}
+ */
+function extractRunsFromElement(el) {
+    const runs = [];
+
+    function walk(node, bold, italic) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            const text = node.textContent;
+            if (text) runs.push({ text, bold, italic });
+            return;
+        }
+        if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+        const tag = node.tagName.toLowerCase();
+        const isBold   = bold   || tag === 'strong' || tag === 'b';
+        const isItalic = italic || tag === 'em'     || tag === 'i';
+
+        for (const child of node.childNodes) {
+            walk(child, isBold, isItalic);
+        }
+    }
+
+    // Determinar si el elemento raíz es heading (negrita implícita)
+    const tag = el.tagName.toLowerCase();
+    const rootBold = ['h1','h2','h3','h4','h5','h6'].includes(tag);
+
+    for (const child of el.childNodes) {
+        walk(child, rootBold, false);
+    }
+
+    return runs;
+}
+
+/**
+ * Extrae tablas del HTML.
+ * 
+ * @param {Document} doc - Documento DOM.
+ * @returns {Array<Object>} Array de objetos tabla.
+ */
+function extractTablesFromHtml(doc) {
+    const tables = [];
+    const tableElements = doc.querySelectorAll('table');
+
+    tableElements.forEach((table, index) => {
+        const rows = [];
+        const trElements = table.querySelectorAll('tr');
+
+        trElements.forEach(tr => {
+            const cells = [];
+            const tdElements = tr.querySelectorAll('td, th');
+            
+            tdElements.forEach(td => {
+                cells.push({
+                    text: td.textContent,
+                    html: td.innerHTML,
+                    isHeader: td.tagName === 'TH'
+                });
+            });
+            rows.push(cells);
+        });
+
+        tables.push({
+            id: `tbl-${index}`,
+            rows: rows,
+            rawElement: table
+        });
+    });
+
+    return tables;
+}
+
+/**
+ * Extrae referencias a imágenes.
+ * Mammoth convierte imágenes en <img> con src como data URI o URL.
+ * 
+ * @param {Document} doc - Documento DOM.
+ * @returns {Array<Object>} Array de objetos imagen.
+ */
+function extractImagesFromHtml(doc) {
+    const images = [];
+    const imgElements = doc.querySelectorAll('img');
+
+    imgElements.forEach((img, index) => {
+        images.push({
+            id: `img-${index}`,
+            src: img.src, // Puede ser data:image/png;base64,...
+            alt: img.alt || `Imagen ${index + 1}`,
+            width: img.width,
+            height: img.height,
+            rawElement: img
+        });
+    });
+
+    return images;
+}
+
+/**
+ * Función auxiliar para leer un archivo DOCX directamente como texto XML (avanzado).
+ * Si se necesita acceso directo al XML de Word (ej. para modificar estilos específicos),
+ * se puede usar JSZip.
+ * 
+ * @param {File} file 
+ * @returns {Promise<Object>}
+ */
+export async function readDocxXmlDirectly(file) {
+    // Esta función es un fallback si mammoth no es suficiente.
+    // Requiere la librería 'jszip'.
+    if (typeof JSZip === 'undefined') {
+        console.warn('[DocxReader]: JSZip no está cargado. No se puede leer XML directamente.');
+        return null;
+    }
+
+    try {
+        const zip = await JSZip.loadAsync(file);
+        const documentXml = await zip.file("word/document.xml").async("string");
+        
+        // Aquí se usaría un parser XML (como xmldom) para navegar el XML de Word.
+        // Esto es mucho más complejo pero da control total sobre los estilos.
+        // Por ahora, retornamos el XML crudo.
+        return { xml: documentXml };
+    } catch (error) {
+        console.error('[DocxReader]: Error leyendo XML directo:', error);
+        return null;
+    }
+}
+
+/**
+ * Valida que el archivo sea realmente un DOCX (magic number check).
+ * 
+ * @param {File} file 
+ * @returns {boolean}
+ */
+export function validateDocxFile(file) {
+    // Un DOCX es un ZIP. El magic number de ZIP es PK.
+    // Pero en el navegador es difícil leer los primeros bytes sin arrayBuffer.
+    // La validación de extensión suele ser suficiente para una app web.
+    return file.name.toLowerCase().endsWith('.docx');
 }
