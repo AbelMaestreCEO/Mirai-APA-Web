@@ -83,42 +83,102 @@ export async function readDocxFile(file) {
 
 /**
  * Extrae párrafos del HTML generado por mammoth.
- * Mammoth convierte cada <p> de Word en un <p> en HTML.
- * 
+ * Mammoth genera <p> para cuerpo y <h1>-<h6> para títulos.
+ * También maneja <ul>/<ol> como listas de párrafos.
+ *
  * @param {Document} doc - Documento DOM parseado.
  * @returns {Array<Object>} Array de objetos párrafo.
  */
 function extractParagraphsFromHtml(doc) {
     const paragraphs = [];
-    const pElements = doc.querySelectorAll('p');
 
-    pElements.forEach((p, index) => {
-        const text = p.textContent || "";
-        const innerHTML = p.innerHTML;
-        
-        // Detectar si es un título basado en clases de mammoth (ej. "style-code-heading-1")
-        // Mammoth asigna clases como "style-code-heading-1" si el estilo original era Heading 1.
-        let detectedLevel = 0;
-        if (p.classList.contains('style-code-heading-1')) detectedLevel = 1;
-        else if (p.classList.contains('style-code-heading-2')) detectedLevel = 2;
-        else if (p.classList.contains('style-code-heading-3')) detectedLevel = 3;
-        else if (p.classList.contains('style-code-heading-4')) detectedLevel = 4;
-        else if (p.classList.contains('style-code-heading-5')) detectedLevel = 5;
+    // Seleccionar todos los nodos relevantes en orden de aparición
+    const elements = doc.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li');
 
-        // Detectar si es una lista (mammoth a veces pone listas en <ul>/<li>, pero a veces en <p>)
-        // Aquí asumimos que si está en <p>, es un párrafo normal o título.
+    elements.forEach((el, index) => {
+        const tag = el.tagName.toLowerCase();
+
+        // Nivel de título según el tag HTML
+        const headingTagLevel = { h1: 1, h2: 2, h3: 3, h4: 4, h5: 5, h6: 6 };
+        let detectedLevel = headingTagLevel[tag] || 0;
+
+        // También detectar por clases que mammoth puede añadir a <p>
+        if (detectedLevel === 0) {
+            if (el.classList.contains('Heading1') || el.classList.contains('heading-1')) detectedLevel = 1;
+            else if (el.classList.contains('Heading2') || el.classList.contains('heading-2')) detectedLevel = 2;
+            else if (el.classList.contains('Heading3') || el.classList.contains('heading-3')) detectedLevel = 3;
+            else if (el.classList.contains('Heading4') || el.classList.contains('heading-4')) detectedLevel = 4;
+            else if (el.classList.contains('Heading5') || el.classList.contains('heading-5')) detectedLevel = 5;
+        }
+
+        // Extraer los "runs" (fragmentos de texto con formato) del elemento
+        const runs = extractRunsFromElement(el);
+
+        // Texto plano completo (uniendo todos los runs)
+        const text = runs.map(r => r.text).join('');
+
+        // Ignorar párrafos completamente vacíos
+        if (text.trim() === '') return;
+
+        // Detectar tipo de párrafo
+        let type = 'body';
+        if (detectedLevel > 0) {
+            type = 'heading';
+        } else if (/^[A-Z][a-záéíóúü]+,\s+[A-Z]\.\s+\(\d{4}\)/i.test(text.trim())) {
+            type = 'reference';
+        }
 
         paragraphs.push({
             id: `p-${index}`,
-            type: detectedLevel > 0 ? 'heading' : 'body', // Se refinara en paragraphs.js
+            type,
             level: detectedLevel,
-            text: text,
-            html: innerHTML,
-            rawElement: p // Referencia al nodo DOM si se necesita inspección profunda
+            text,
+            runs,
+            html: el.innerHTML,
+            isBold: runs.some(r => r.bold),
+            isItalic: runs.every(r => r.italic) && runs.length > 0,
         });
     });
 
     return paragraphs;
+}
+
+/**
+ * Extrae los fragmentos de texto con su formato (bold, italic) de un elemento DOM.
+ * Recorre los nodos hijos para preservar el formato inline de mammoth.
+ *
+ * @param {Element} el - Elemento DOM.
+ * @returns {Array<{text: string, bold: boolean, italic: boolean}>}
+ */
+function extractRunsFromElement(el) {
+    const runs = [];
+
+    function walk(node, bold, italic) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            const text = node.textContent;
+            if (text) runs.push({ text, bold, italic });
+            return;
+        }
+        if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+        const tag = node.tagName.toLowerCase();
+        const isBold   = bold   || tag === 'strong' || tag === 'b';
+        const isItalic = italic || tag === 'em'     || tag === 'i';
+
+        for (const child of node.childNodes) {
+            walk(child, isBold, isItalic);
+        }
+    }
+
+    // Determinar si el elemento raíz es heading (negrita implícita)
+    const tag = el.tagName.toLowerCase();
+    const rootBold = ['h1','h2','h3','h4','h5','h6'].includes(tag);
+
+    for (const child of el.childNodes) {
+        walk(child, rootBold, false);
+    }
+
+    return runs;
 }
 
 /**
