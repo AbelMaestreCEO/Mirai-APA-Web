@@ -1,121 +1,406 @@
-/* variables.css */
-/* Liquid Glass Design System - iOS 26 Inspired */
-/* Optimizado para alto rendimiento móvil */
+/* ============================================
+   MIRAI LIQUID GLASS - Multi-Theme Variables
+   4 Temas: Blue Light/Dark + Sakura Light/Dark
+   ============================================ */
 
+/* ---- TEMA AZUL CLARO (Day Blue) ---- */
+:root,
+[data-theme="blue-light"] {
+  /* Paleta Azul Cristalino */
+  --blue-ice: #e3f2fd;
+  --blue-sky: #bbdefb;
+  --blue-ocean: #64b5f6;
+  --blue-deep: #1976d2;
+  --blue-midnight: #0d47a1;
+  
+  /* Gradientes Líquidos */
+  --liquid-bg-start: #f0f7ff;
+  --liquid-bg-end: #e1f0ff;
+  --liquid-accent: rgba(25, 118, 210, 0.15);
+  
+  /* Glassmorphism */
+  --glass-surface: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.85);
+  --glass-shadow: 0 8px 32px 0 rgba(25, 118, 210, 0.1);
+  --glass-blur: 24px;
+  --glass-radius: 28px;
+  
+  /* Textos */
+  --text-primary: #0d47a1;
+  --text-secondary: #1565c0;
+  --text-muted: #5f8dbf;
+  --text-inverse: #ffffff;
+  
+  /* Botones */
+  --btn-gradient: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  --btn-text: #0d47a1;
+  --btn-hover: linear-gradient(135deg, #bbdefb 0%, #90caf9 100%);
+  
+  /* Inputs */
+  --input-bg: rgba(255, 255, 255, 0.6);
+  --input-focus-bg: rgba(255, 255, 255, 0.9);
+  --input-border: rgba(25, 118, 210, 0.2);
+  --input-focus-border: var(--blue-ocean);
+  --input-focus-ring: rgba(25, 118, 210, 0.15);
+  
+  /* Upload */
+  --upload-border: rgba(25, 118, 210, 0.3);
+  --upload-hover-bg: rgba(227, 242, 253, 0.5);
+  --upload-hover-border: var(--blue-ocean);
+  
+  /* Status */
+  --status-info-bg: rgba(25, 118, 210, 0.15);
+  --status-info-border: rgba(25, 118, 210, 0.3);
+  --status-info-text: var(--blue-midnight);
+  --status-success-bg: rgba(76, 175, 80, 0.15);
+  --status-success-border: rgba(76, 175, 80, 0.3);
+  --status-success-text: #2e5c34;
+  --status-error-bg: rgba(244, 67, 54, 0.15);
+  --status-error-border: rgba(244, 67, 54, 0.3);
+  --status-error-text: #8b2626;
+  
+  /* Spinner */
+  --spinner-track: rgba(255, 255, 255, 0.4);
+  --spinner-top: var(--blue-ocean);
+  
+  /* Scrollbar */
+  --scrollbar-track: rgba(255, 255, 255, 0.4);
+  --scrollbar-thumb: var(--blue-sky);
+  --scrollbar-thumb-hover: var(--blue-ocean);
+  
+  /* Selection */
+  --selection-bg: var(--blue-ocean);
+  --selection-text: #ffffff;
+  
+  /* Footer */
+  --footer-bg: rgba(255, 255, 255, 0.3);
+  --footer-border: rgba(255, 255, 255, 0.6);
+  --footer-heading: var(--blue-midnight);
+  --footer-link: var(--text-secondary);
+  --footer-link-hover: var(--blue-ocean);
+  --footer-copyright: var(--text-muted);
+  
+  /* Theme toggle */
+  --toggle-bg: rgba(255, 255, 255, 0.5);
+  --toggle-icon: var(--blue-midnight);
+  
+  /* Blob Background */
+  --body-bg: var(--liquid-bg-start);
+  --body-radial-1: hsla(210, 80%, 96%, 1);
+  --body-radial-2: hsla(200, 80%, 94%, 1);
+  --liquid-blob-1: rgba(227, 242, 253, 0.8);
+  --liquid-blob-2: rgba(100, 181, 246, 0.25);
+  --liquid-blob-3: rgba(25, 118, 210, 0.15);
+  
+  /* Step circles */
+  --step-circle-bg: rgba(25, 118, 210, 0.1);
+  --step-circle-border: rgba(25, 118, 210, 0.2);
+  --step-icon-stroke: var(--blue-ocean);
+  --step-title: var(--blue-midnight);
+  
+  /* Image item */
+  --img-item-bg: rgba(255, 255, 255, 0.5);
+  --img-item-border: rgba(255, 255, 255, 0.7);
+  --img-item-hover-shadow: 0 8px 20px rgba(25, 118, 210, 0.15);
+  
+  /* Reset btn */
+  --reset-bg: rgba(244, 67, 54, 0.15);
+  --reset-border: rgba(244, 67, 54, 0.3);
+  --reset-text: #8b2626;
+}
+
+/* ---- TEMA AZUL OSCURO (Night Blue) ---- */
+[data-theme="blue-dark"] {
+  --liquid-bg-start: #0a1929;
+  --liquid-bg-end: #0d1f33;
+  
+  --glass-surface: rgba(13, 31, 51, 0.7);
+  --glass-border: rgba(100, 181, 246, 0.15);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+  --glass-blur: 24px;
+  
+  --text-primary: #e3f2fd;
+  --text-secondary: #bbdefb;
+  --text-muted: #7cb3e0;
+  --text-inverse: #0a1929;
+  
+  --btn-gradient: linear-gradient(135deg, #1565c0 0%, #1976d2 100%);
+  --btn-text: #e3f2fd;
+  --btn-hover: linear-gradient(135deg, #0d47a1 0%, #1565c0 100%);
+  
+  --input-bg: rgba(13, 31, 51, 0.6);
+  --input-focus-bg: rgba(20, 45, 70, 0.8);
+  --input-border: rgba(100, 181, 246, 0.2);
+  --input-focus-border: var(--blue-ocean);
+  --input-focus-ring: rgba(100, 181, 246, 0.2);
+  
+  --upload-border: rgba(100, 181, 246, 0.25);
+  --upload-hover-bg: rgba(20, 45, 70, 0.5);
+  --upload-hover-border: var(--blue-ocean);
+  
+  --status-info-bg: rgba(100, 181, 246, 0.12);
+  --status-info-border: rgba(100, 181, 246, 0.25);
+  --status-info-text: #bbdefb;
+  --status-success-bg: rgba(76, 175, 80, 0.12);
+  --status-success-border: rgba(76, 175, 80, 0.25);
+  --status-success-text: #66bb6a;
+  --status-error-bg: rgba(244, 67, 54, 0.12);
+  --status-error-border: rgba(244, 67, 54, 0.25);
+  --status-error-text: #ef9a9a;
+  
+  --spinner-track: rgba(100, 181, 246, 0.15);
+  --spinner-top: var(--blue-ocean);
+  
+  --scrollbar-track: rgba(13, 31, 51, 0.4);
+  --scrollbar-thumb: #1976d2;
+  --scrollbar-thumb-hover: var(--blue-ocean);
+  
+  --selection-bg: var(--blue-ocean);
+  --selection-text: #e3f2fd;
+  
+  --footer-bg: rgba(10, 25, 41, 0.7);
+  --footer-border: rgba(100, 181, 246, 0.15);
+  --footer-heading: #bbdefb;
+  --footer-link: #90caf9;
+  --footer-link-hover: var(--blue-ocean);
+  --footer-copyright: #7cb3e0;
+  
+  --toggle-bg: rgba(13, 31, 51, 0.6);
+  --toggle-icon: #bbdefb;
+  
+  --blob-1: rgba(30, 60, 90, 0.6);
+  --blob-2: rgba(60, 90, 130, 0.3);
+  --blob-3: rgba(40, 70, 100, 0.4);
+  
+  --step-circle-bg: rgba(100, 181, 246, 0.1);
+  --step-circle-border: rgba(100, 181, 246, 0.2);
+  --step-icon-stroke: #64b5f6;
+  --step-title: #bbdefb;
+  
+  --img-item-bg: rgba(13, 31, 51, 0.5);
+  --img-item-border: rgba(100, 181, 246, 0.15);
+  --img-item-hover-shadow: 0 8px 20px rgba(100, 181, 246, 0.15);
+  
+  --reset-bg: rgba(244, 67, 54, 0.1);
+  --reset-border: rgba(244, 67, 54, 0.2);
+  --reset-text: #ef9a9a;
+}
+
+/* ---- TEMA SAKURA CLARO (Day Sakura) ---- */
+[data-theme="sakura-light"] {
+  /* Paleta Sakura */
+  --sakura-pink-light: #ffe4e6;
+  --sakura-pink-med: #fbcfe8;
+  --sakura-pink-deep: #f472b6;
+  --sakura-brown: #8d6e63;
+  --sakura-brown-dark: #5d4037;
+  
+  /* Gradientes Líquidos */
+  --liquid-bg-start: #fff1f2;
+  --liquid-bg-end: #fce7f3;
+  --liquid-accent: rgba(244, 114, 182, 0.4);
+  
+  /* Glassmorphism */
+  --glass-surface: rgba(255, 255, 255, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-shadow: 0 8px 32px 0 rgba(244, 114, 182, 0.15);
+  --glass-blur: 24px;
+  --glass-radius: 32px;
+  
+  /* Textos */
+  --text-primary: #5d4037;
+  --text-secondary: #8d6e63;
+  --text-muted: #a1887f;
+  --text-inverse: #ffffff;
+  
+  /* Botones */
+  --btn-gradient: linear-gradient(135deg, #fbcfe8 0%, #f472b6 100%);
+  --btn-text: #5d4037;
+  --btn-hover: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+  
+  /* Inputs */
+  --input-bg: rgba(255, 255, 255, 0.5);
+  --input-focus-bg: rgba(255, 255, 255, 0.8);
+  --input-border: rgba(255, 255, 255, 0.6);
+  --input-focus-border: var(--sakura-pink-deep);
+  --input-focus-ring: rgba(244, 114, 182, 0.15);
+  
+  /* Upload */
+  --upload-border: rgba(244, 114, 182, 0.4);
+  --upload-hover-bg: rgba(255, 228, 230, 0.5);
+  --upload-hover-border: var(--sakura-pink-deep);
+  
+  /* Status */
+  --status-info-bg: rgba(244, 114, 182, 0.15);
+  --status-info-border: rgba(244, 114, 182, 0.3);
+  --status-info-text: var(--sakura-brown-dark);
+  --status-success-bg: rgba(52, 199, 89, 0.15);
+  --status-success-border: rgba(52, 199, 89, 0.3);
+  --status-success-text: #2d5a3d;
+  --status-error-bg: rgba(255, 59, 48, 0.15);
+  --status-error-border: rgba(255, 59, 48, 0.3);
+  --status-error-text: #8b2626;
+  
+  /* Spinner */
+  --spinner-track: rgba(255, 255, 255, 0.3);
+  --spinner-top: var(--sakura-pink-deep);
+  
+  /* Scrollbar */
+  --scrollbar-track: rgba(255, 255, 255, 0.3);
+  --scrollbar-thumb: var(--sakura-pink-med);
+  --scrollbar-thumb-hover: var(--sakura-pink-deep);
+  
+  /* Selection */
+  --selection-bg: var(--sakura-pink-deep);
+  --selection-text: #ffffff;
+  
+  /* Footer */
+  --footer-bg: rgba(255, 255, 255, 0.2);
+  --footer-border: rgba(255, 255, 255, 0.5);
+  --footer-heading: var(--sakura-brown-dark);
+  --footer-link: var(--text-secondary);
+  --footer-link-hover: var(--sakura-pink-deep);
+  --footer-copyright: var(--text-muted);
+  
+  /* Theme toggle */
+  --toggle-bg: rgba(255, 255, 255, 0.4);
+  --toggle-icon: var(--sakura-brown-dark);
+  
+  /* Sakura petal */
+  --petal-1: linear-gradient(135deg, #ffe4e6, #fbcfe8);
+  --petal-2: linear-gradient(135deg, #fff0f5, #ffd1dc);
+  --petal-3: linear-gradient(135deg, #ffe4e1, #ffb6c1);
+  
+  /* Body background */
+  --body-bg: var(--liquid-bg-start);
+  --body-radial-1: hsla(340, 80%, 95%, 1);
+  --body-radial-2: hsla(320, 80%, 95%, 1);
+  --liquid-blob-1: rgba(255, 228, 230, 0.8);
+  --liquid-blob-2: rgba(244, 114, 182, 0.3);
+  --liquid-blob-3: rgba(255, 200, 200, 0.4);
+  
+  /* Step circles */
+  --step-circle-bg: rgba(244, 114, 182, 0.15);
+  --step-circle-border: rgba(244, 114, 182, 0.3);
+  --step-icon-stroke: var(--sakura-pink-deep);
+  --step-title: var(--sakura-brown-dark);
+  
+  /* Image item */
+  --img-item-bg: rgba(255, 255, 255, 0.4);
+  --img-item-border: rgba(255, 255, 255, 0.6);
+  --img-item-hover-shadow: 0 8px 20px rgba(244, 114, 182, 0.2);
+  
+  /* Reset btn */
+  --reset-bg: rgba(255, 59, 48, 0.15);
+  --reset-border: rgba(255, 59, 48, 0.3);
+  --reset-text: #8b2626;
+}
+
+/* ---- TEMA SAKURA OSCURO (Night Sakura) ---- */
+[data-theme="sakura-dark"] {
+  --liquid-bg-start: #1a0a10;
+  --liquid-bg-end: #2d1225;
+  
+  --glass-surface: rgba(45, 18, 37, 0.65);
+  --glass-border: rgba(244, 114, 182, 0.2);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+  --glass-blur: 24px;
+  
+  --text-primary: #fce7f3;
+  --text-secondary: #f9a8d4;
+  --text-muted: #9d6b7a;
+  --text-inverse: #1a0a10;
+  
+  --btn-gradient: linear-gradient(135deg, #9d3a6e 0%, #f472b6 100%);
+  --btn-text: #fff1f2;
+  --btn-hover: linear-gradient(135deg, #7c2d5a 0%, #9d3a6e 100%);
+  
+  --input-bg: rgba(45, 18, 37, 0.5);
+  --input-focus-bg: rgba(60, 25, 48, 0.8);
+  --input-border: rgba(244, 114, 182, 0.2);
+  --input-focus-border: var(--sakura-pink-deep);
+  --input-focus-ring: rgba(244, 114, 182, 0.25);
+  
+  --upload-border: rgba(244, 114, 182, 0.3);
+  --upload-hover-bg: rgba(60, 25, 48, 0.5);
+  --upload-hover-border: var(--sakura-pink-deep);
+  
+  --status-info-bg: rgba(244, 114, 182, 0.12);
+  --status-info-border: rgba(244, 114, 182, 0.25);
+  --status-info-text: #f9a8d4;
+  --status-success-bg: rgba(52, 199, 89, 0.12);
+  --status-success-border: rgba(52, 199, 89, 0.25);
+  --status-success-text: #6ee7a0;
+  --status-error-bg: rgba(255, 59, 48, 0.12);
+  --status-error-border: rgba(255, 59, 48, 0.25);
+  --status-error-text: #ff8a80;
+  
+  --spinner-track: rgba(244, 114, 182, 0.15);
+  --spinner-top: var(--sakura-pink-deep);
+  
+  --scrollbar-track: rgba(45, 18, 37, 0.3);
+  --scrollbar-thumb: #9d3a6e;
+  --scrollbar-thumb-hover: var(--sakura-pink-deep);
+  
+  --selection-bg: var(--sakura-pink-deep);
+  --selection-text: #fff1f2;
+  
+  --footer-bg: rgba(30, 12, 22, 0.6);
+  --footer-border: rgba(244, 114, 182, 0.15);
+  --footer-heading: #f9a8d4;
+  --footer-link: #d4899e;
+  --footer-link-hover: #f472b6;
+  --footer-copyright: #9d6b7a;
+  
+  --toggle-bg: rgba(45, 18, 37, 0.6);
+  --toggle-icon: #f9a8d4;
+  
+  --petal-1: linear-gradient(135deg, rgba(244, 114, 182, 0.3), rgba(155, 58, 110, 0.4));
+  --petal-2: linear-gradient(135deg, rgba(251, 207, 232, 0.2), rgba(244, 114, 182, 0.35));
+  --petal-3: linear-gradient(135deg, rgba(255, 182, 193, 0.25), rgba(200, 80, 140, 0.35));
+  
+  --body-bg: var(--liquid-bg-start);
+  --body-radial-1: hsla(330, 50%, 12%, 1);
+  --body-radial-2: hsla(320, 50%, 10%, 1);
+  --liquid-blob-1: rgba(80, 20, 55, 0.6);
+  --liquid-blob-2: rgba(120, 30, 70, 0.3);
+  --liquid-blob-3: rgba(60, 15, 40, 0.4);
+  
+  --step-circle-bg: rgba(244, 114, 182, 0.1);
+  --step-circle-border: rgba(244, 114, 182, 0.2);
+  --step-icon-stroke: #f472b6;
+  --step-title: #f9a8d4;
+  
+  --img-item-bg: rgba(45, 18, 37, 0.4);
+  --img-item-border: rgba(244, 114, 182, 0.15);
+  --img-item-hover-shadow: 0 8px 20px rgba(244, 114, 182, 0.15);
+  
+  --reset-bg: rgba(255, 59, 48, 0.1);
+  --reset-border: rgba(255, 59, 48, 0.2);
+  --reset-text: #ff8a80;
+}
+
+/* ============================================
+   ESPACIADO & TIPOGRAFÍA BASE
+   ============================================ */
 :root {
-  /* =========================================
-     PALETA DE COLORES - Fondo translúcido
-     ========================================= */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
   
-  /* Colores base con transparencia para efecto glass */
-  --glass-bg-primary: rgba(255, 255, 255, 0.12);
-  --glass-bg-secondary: rgba(255, 255, 255, 0.08);
-  --glass-bg-tertiary: rgba(255, 255, 255, 0.05);
-  
-  /* Colores oscuros para modo oscuro automático */
-  --glass-bg-dark-primary: rgba(20, 20, 30, 0.65);
-  --glass-bg-dark-secondary: rgba(20, 20, 30, 0.55);
-  --glass-bg-dark-tertiary: rgba(20, 20, 30, 0.45);
-  
-  /* Gradientes para bordes y acentos */
-  --gradient-accent-start: rgba(120, 119, 198, 0.4);
-  --gradient-accent-end: rgba(255, 119, 198, 0.4);
-  --gradient-surface: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.15),
-    rgba(255, 255, 255, 0.05)
-  );
-  
-  /* Textos con contraste óptimo */
-  --text-primary: rgba(255, 255, 255, 0.95);
-  --text-secondary: rgba(255, 255, 255, 0.75);
-  --text-tertiary: rgba(255, 255, 255, 0.55);
-  --text-muted: rgba(255, 255, 255, 0.4);
-  
-  /* Colores de estado */
-  --color-success: rgba(52, 199, 89, 0.9);
-  --color-warning: rgba(255, 159, 10, 0.9);
-  --color-error: rgba(255, 59, 48, 0.9);
-  --color-info: rgba(0, 122, 255, 0.9);
-  
-  /* =========================================
-     BORDES REDONDEADOS - Escala progresiva
-     ========================================= */
-  
-  --radius-xs: 6px;
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
-  --radius-xl: 28px;
-  --radius-xxl: 36px;
-  --radius-full: 9999px;
-  
-  /* =========================================
-     ESPACIADO - Sistema 4px base
-     ========================================= */
-  
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-7: 32px;
-  --space-8: 40px;
-  --space-9: 48px;
-  --space-10: 64px;
-  
-  /* =========================================
-     SOMBRAS - Profundidad sutil
-     ========================================= */
-  
-  --shadow-sm: 
-    0 2px 8px rgba(0, 0, 0, 0.08),
-    0 1px 3px rgba(0, 0, 0, 0.12);
-  
-  --shadow-md: 
-    0 4px 16px rgba(0, 0, 0, 0.12),
-    0 2px 6px rgba(0, 0, 0, 0.15);
-  
-  --shadow-lg: 
-    0 8px 32px rgba(0, 0, 0, 0.16),
-    0 4px 12px rgba(0, 0, 0, 0.18);
-  
-  --shadow-xl: 
-    0 16px 48px rgba(0, 0, 0, 0.2),
-    0 8px 24px rgba(0, 0, 0, 0.22);
-  
-  /* Sombra interna para efecto hundido */
-  --shadow-inner: inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  
-  /* =========================================
-     EFECTOS GLASS - Blur y bordes
-     ========================================= */
-  
-  --blur-backdrop: blur(24px);
-  --blur-medium: blur(16px);
-  --blur-light: blur(12px);
-  
-  --border-glass: 1px solid rgba(255, 255, 255, 0.12);
-  --border-highlight: 1px solid rgba(255, 255, 255, 0.2);
-  --border-subtle: 1px solid rgba(255, 255, 255, 0.06);
-  
-  /* =========================================
-     TIPOGRAFÍA - Escala fluida
-     ========================================= */
-  
-  --font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 
-                 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --font-family-mono: 'SF Mono', 'Menlo', 'Monaco', 'Courier New', monospace;
-  
-  --font-size-xs: 0.75rem;    /* 12px */
-  --font-size-sm: 0.875rem;   /* 14px */
-  --font-size-base: 1rem;     /* 16px */
-  --font-size-lg: 1.125rem;   /* 18px */
-  --font-size-xl: 1.25rem;    /* 20px */
-  --font-size-2xl: 1.5rem;    /* 24px */
-  --font-size-3xl: 1.875rem;  /* 30px */
-  --font-size-4xl: 2.25rem;   /* 36px */
+  --font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 2rem;
   
   --font-weight-normal: 400;
   --font-weight-medium: 500;
@@ -126,136 +411,31 @@
   --line-height-normal: 1.5;
   --line-height-relaxed: 1.75;
   
-  /* =========================================
-     ANIMACIONES - Timing optimizado
-     ========================================= */
-  
-  --duration-instant: 0ms;
-  --duration-fast: 150ms;
-  --duration-normal: 250ms;
-  --duration-slow: 350ms;
-  --duration-slower: 500ms;
-  
-  --ease-out: cubic-bezier(0.215, 0.61, 0.355, 1);
-  --ease-in-out: cubic-bezier(0.645, 0.045, 0.355, 1);
-  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  
-  /* =========================================
-     BREAKPOINTS - Mobile-first
-     ========================================= */
-  
-  --breakpoint-sm: 375px;   /* iPhone SE */
-  --breakpoint-md: 768px;   /* iPad Mini */
-  --breakpoint-lg: 1024px;  /* iPad Pro */
-  --breakpoint-xl: 1280px;  /* Desktop */
-  
-  /* =========================================
-     Z-INDEX - Capas de interfaz
-     ========================================= */
-  
-  --z-base: 1;
-  --z-dropdown: 100;
-  --z-sticky: 200;
-  --z-modal: 300;
-  --z-tooltip: 400;
-  --z-toast: 500;
-  
-  /* =========================================
-     TOUCH TARGETS - Accesibilidad móvil
-     ========================================= */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   
   --touch-target-min: 44px;
-  --touch-target-comfortable: 48px;
-  
-  /* =========================================
-     FONDO DE PANTALLA - Degradado base
-     ========================================= */
-  
-  --bg-gradient: linear-gradient(
-    135deg,
-    #667eea 0%,
-    #764ba2 50%,
-    #f093fb 100%
-  );
-  
-  --bg-gradient-dark: linear-gradient(
-    135deg,
-    #0f0c29 0%,
-    #302b63 50%,
-    #24243e 100%
-  );
 }
 
-/* =========================================
-   MODO OSCURO AUTOMÁTICO
-   ========================================= */
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --glass-bg-primary: var(--glass-bg-dark-primary);
-    --glass-bg-secondary: var(--glass-bg-dark-secondary);
-    --glass-bg-tertiary: var(--glass-bg-dark-tertiary);
-    
-    --text-primary: rgba(255, 255, 255, 0.95);
-    --text-secondary: rgba(255, 255, 255, 0.75);
-    --text-tertiary: rgba(255, 255, 255, 0.55);
-    
-    --border-glass: 1px solid rgba(255, 255, 255, 0.08);
-    --border-highlight: 1px solid rgba(255, 255, 255, 0.12);
-    --border-subtle: 1px solid rgba(255, 255, 255, 0.04);
-    
-    --bg-gradient: var(--bg-gradient-dark);
-  }
-}
-
-/* =========================================
-   OPTIMIZACIONES PARA MOVIL
-   ========================================= */
-
-@media (max-width: 768px) {
-  :root {
-    /* Reducir blur para mejor rendimiento */
-    --blur-backdrop: blur(16px);
-    --blur-medium: blur(12px);
-    --blur-light: blur(8px);
-    
-    /* Sombras más sutiles en móvil */
-    --shadow-md: 
-      0 2px 12px rgba(0, 0, 0, 0.1),
-      0 1px 4px rgba(0, 0, 0, 0.12);
-    
-    --shadow-lg: 
-      0 4px 24px rgba(0, 0, 0, 0.14),
-      0 2px 8px rgba(0, 0, 0, 0.16);
-    
-    /* Espaciados ajustados */
-    --space-6: 20px;
-    --space-7: 28px;
-    --space-8: 36px;
-  }
-}
-
-/* =========================================
+/* ============================================
    REDUCCIÓN DE MOVIMIENTO
-   ========================================= */
-
+   ============================================ */
 @media (prefers-reduced-motion: reduce) {
   :root {
-    --duration-fast: 0ms;
-    --duration-normal: 0ms;
-    --duration-slow: 0ms;
-    --duration-slower: 0ms;
+    --transition-fast: 0.01ms;
+    --transition-normal: 0.01ms;
+    --transition-slow: 0.01ms;
   }
 }
 
-/* =========================================
+/* ============================================
    ALTO CONTRASTE
-   ========================================= */
-
+   ============================================ */
 @media (prefers-contrast: high) {
   :root {
-    --text-primary: rgba(255, 255, 255, 1);
-    --text-secondary: rgba(255, 255, 255, 0.9);
-    --border-glass: 1px solid rgba(255, 255, 255, 0.3);
+    --glass-border: rgba(255, 255, 255, 0.3);
+    --text-primary: #ffffff;
+    --text-secondary: #e0e0e0;
   }
 }
