@@ -30,9 +30,11 @@ body {
   transition: background-color var(--transition-normal), color var(--transition-normal);
   position: relative;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Fondo animado con blobs líquidos */
+/* Fondo animado con blobs líquidos (Optimizado) */
 body::before {
   content: '';
   position: fixed;
@@ -60,7 +62,8 @@ body::after {
     radial-gradient(circle at 40% 80%, var(--liquid-blob-3) 0%, transparent 60%);
   z-index: -1;
   pointer-events: none;
-  animation: blobFloat 20s ease-in-out infinite;
+  animation: blobFloat 25s ease-in-out infinite;
+  will-change: transform;
 }
 
 @keyframes blobFloat {
@@ -91,6 +94,7 @@ body::after {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  gap: var(--space-6);
 }
 
 /* ============================================
@@ -106,7 +110,7 @@ body::after {
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
   border: 1px solid var(--glass-border);
-  border-radius: var(--glass-radius);
+  border-radius: var(--radius-xl);
   box-shadow: var(--glass-shadow);
   position: sticky;
   top: var(--space-4);
@@ -117,6 +121,7 @@ body::after {
 .header.scrolled {
   padding: var(--space-3) var(--space-5);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.85);
 }
 
 .logo {
@@ -137,16 +142,21 @@ body::after {
 .logo-img {
   width: 32px;
   height: 32px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   object-fit: contain;
 }
 
 .logo-icon {
   width: 32px;
   height: 32px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--btn-gradient);
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--btn-text);
+  font-weight: bold;
 }
 
 .header-actions {
@@ -156,10 +166,16 @@ body::after {
 }
 
 .nav-links {
-  display: flex;
+  display: none; /* Oculto en móvil por defecto */
   gap: var(--space-5);
   list-style: none;
   align-items: center;
+}
+
+@media (min-width: 768px) {
+  .nav-links {
+    display: flex;
+  }
 }
 
 .nav-links a {
@@ -184,11 +200,13 @@ body::after {
   transition: width var(--transition-normal);
 }
 
-.nav-links a:hover {
+.nav-links a:hover,
+.nav-links a.active {
   color: var(--text-primary);
 }
 
-.nav-links a:hover::after {
+.nav-links a:hover::after,
+.nav-links a.active::after {
   width: 100%;
 }
 
@@ -197,7 +215,8 @@ body::after {
    ============================================ */
 main.container {
   padding-top: 0;
-  min-height: calc(100vh - 180px);
+  flex: 1;
+  width: 100%;
 }
 
 /* ============================================
@@ -268,6 +287,7 @@ main.container {
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
   border-top: 1px solid var(--footer-border);
+  border-radius: var(--radius-xxl) var(--radius-xxl) 0 0;
   transition: all var(--transition-normal);
 }
 
@@ -309,10 +329,13 @@ main.container {
   text-decoration: none;
   font-size: var(--font-size-sm);
   transition: color var(--transition-fast);
+  display: inline-block;
+  padding: 2px 0;
 }
 
 .footer-col ul li a:hover {
   color: var(--footer-link-hover);
+  transform: translateX(4px);
 }
 
 .footer-brand {
@@ -357,7 +380,7 @@ main.container {
   justify-content: center;
   width: 36px;
   height: 36px;
-  border-radius: var(--radius-sm, 8px);
+  border-radius: var(--radius-sm);
   background: var(--glass-surface);
   border: 1px solid var(--glass-border);
   transition: all var(--transition-fast);
@@ -367,6 +390,7 @@ main.container {
   background: var(--btn-gradient);
   transform: translateY(-2px);
   border-color: transparent;
+  box-shadow: var(--shadow-sm);
 }
 
 .social-icons a img {
@@ -429,6 +453,7 @@ main.container {
   
   .layout-container {
     padding: var(--space-3);
+    gap: var(--space-4);
   }
   
   .header {
@@ -436,6 +461,7 @@ main.container {
     gap: var(--space-3);
     padding: var(--space-3);
     top: var(--space-2);
+    border-radius: var(--radius-lg);
   }
   
   .nav-links {
@@ -454,6 +480,10 @@ main.container {
   
   .social-icons {
     justify-content: center !important;
+  }
+  
+  .footer-main {
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   }
 }
 
@@ -491,7 +521,7 @@ main.container {
 :focus-visible {
   outline: 2px solid var(--blue-ocean, var(--sakura-pink-deep));
   outline-offset: 2px;
-  border-radius: var(--radius-sm, 4px);
+  border-radius: var(--radius-sm);
 }
 
 .sr-only {

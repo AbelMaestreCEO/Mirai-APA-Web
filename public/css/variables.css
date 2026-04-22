@@ -1,9 +1,9 @@
 /* ============================================
-   MIRAI LIQUID GLASS - Multi-Theme Variables
-   4 Temas: Blue Light/Dark + Sakura Light/Dark
+   MIRAI LIQUID GLASS - Variables & Themes
+   iOS 26 Inspired • 4 Temas • Optimizado
    ============================================ */
 
-/* ---- TEMA AZUL CLARO (Day Blue) ---- */
+/* ---- TEMA POR DEFECTO (Blue Light) ---- */
 :root,
 [data-theme="blue-light"] {
   /* Paleta Azul Cristalino */
@@ -13,7 +13,7 @@
   --blue-deep: #1976d2;
   --blue-midnight: #0d47a1;
   
-  /* Gradientes Líquidos */
+  /* Gradientes Líquidos de Fondo */
   --liquid-bg-start: #f0f7ff;
   --liquid-bg-end: #e1f0ff;
   --liquid-accent: rgba(25, 118, 210, 0.15);
@@ -23,18 +23,20 @@
   --glass-border: rgba(255, 255, 255, 0.85);
   --glass-shadow: 0 8px 32px 0 rgba(25, 118, 210, 0.1);
   --glass-blur: 24px;
-  --glass-radius: 28px;
+  --glass-radius: 32px; /* Bordes muy redondeados */
   
   /* Textos */
   --text-primary: #0d47a1;
   --text-secondary: #1565c0;
-  --text-muted: #5f8dbf;
+  --text-tertiary: #5f8dbf;
+  --text-muted: #90caf9;
   --text-inverse: #ffffff;
   
   /* Botones */
   --btn-gradient: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
   --btn-text: #0d47a1;
   --btn-hover: linear-gradient(135deg, #bbdefb 0%, #90caf9 100%);
+  --btn-shadow: 0 4px 15px rgba(25, 118, 210, 0.2);
   
   /* Inputs */
   --input-bg: rgba(255, 255, 255, 0.6);
@@ -80,11 +82,11 @@
   --footer-link-hover: var(--blue-ocean);
   --footer-copyright: var(--text-muted);
   
-  /* Theme toggle */
+  /* Theme Toggle */
   --toggle-bg: rgba(255, 255, 255, 0.5);
   --toggle-icon: var(--blue-midnight);
   
-  /* Blob Background */
+  /* Blob Background (Animado) */
   --body-bg: var(--liquid-bg-start);
   --body-radial-1: hsla(210, 80%, 96%, 1);
   --body-radial-2: hsla(200, 80%, 94%, 1);
@@ -121,12 +123,14 @@
   
   --text-primary: #e3f2fd;
   --text-secondary: #bbdefb;
-  --text-muted: #7cb3e0;
+  --text-tertiary: #7cb3e0;
+  --text-muted: #90caf9;
   --text-inverse: #0a1929;
   
   --btn-gradient: linear-gradient(135deg, #1565c0 0%, #1976d2 100%);
   --btn-text: #e3f2fd;
   --btn-hover: linear-gradient(135deg, #0d47a1 0%, #1565c0 100%);
+  --btn-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   
   --input-bg: rgba(13, 31, 51, 0.6);
   --input-focus-bg: rgba(20, 45, 70, 0.8);
@@ -210,13 +214,15 @@
   /* Textos */
   --text-primary: #5d4037;
   --text-secondary: #8d6e63;
-  --text-muted: #a1887f;
+  --text-tertiary: #a1887f;
+  --text-muted: #d7ccc8;
   --text-inverse: #ffffff;
   
   /* Botones */
   --btn-gradient: linear-gradient(135deg, #fbcfe8 0%, #f472b6 100%);
   --btn-text: #5d4037;
   --btn-hover: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+  --btn-shadow: 0 4px 15px rgba(244, 114, 182, 0.2);
   
   /* Inputs */
   --input-bg: rgba(255, 255, 255, 0.5);
@@ -308,12 +314,14 @@
   
   --text-primary: #fce7f3;
   --text-secondary: #f9a8d4;
-  --text-muted: #9d6b7a;
+  --text-tertiary: #9d6b7a;
+  --text-muted: #d7ccc8;
   --text-inverse: #1a0a10;
   
   --btn-gradient: linear-gradient(135deg, #9d3a6e 0%, #f472b6 100%);
   --btn-text: #fff1f2;
   --btn-hover: linear-gradient(135deg, #7c2d5a 0%, #9d3a6e 100%);
+  --btn-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   
   --input-bg: rgba(45, 18, 37, 0.5);
   --input-focus-bg: rgba(60, 25, 48, 0.8);
@@ -381,19 +389,32 @@
 }
 
 /* ============================================
-   ESPACIADO & TIPOGRAFÍA BASE
+   ESPACIADO & TIPOGRAFÍA BASE (Amplificado)
    ============================================ */
 :root {
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.5rem;
-  --space-6: 2rem;
-  --space-7: 3rem;
-  --space-8: 4rem;
+  /* Espaciado ampliado para mayor aire */
+  --space-1: 0.5rem;   /* 8px */
+  --space-2: 1rem;     /* 16px */
+  --space-3: 1.5rem;   /* 24px */
+  --space-4: 2rem;     /* 32px */
+  --space-5: 2.5rem;   /* 40px */
+  --space-6: 3rem;     /* 48px */
+  --space-7: 4rem;     /* 64px */
+  --space-8: 5rem;     /* 80px */
   
+  /* Bordes muy redondeados */
+  --radius-xs: 8px;
+  --radius-sm: 16px;
+  --radius-md: 24px;
+  --radius-lg: 32px;
+  --radius-xl: 40px;
+  --radius-xxl: 48px;
+  --radius-full: 9999px;
+  
+  /* Tipografía */
   --font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+  --font-family-mono: 'SF Mono', 'Menlo', 'Monaco', monospace;
+  
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-base: 1rem;
@@ -401,6 +422,7 @@
   --font-size-xl: 1.25rem;
   --font-size-2xl: 1.5rem;
   --font-size-3xl: 2rem;
+  --font-size-4xl: 2.5rem;
   
   --font-weight-normal: 400;
   --font-weight-medium: 500;
@@ -411,16 +433,20 @@
   --line-height-normal: 1.5;
   --line-height-relaxed: 1.75;
   
-  --transition-fast: 0.15s ease;
+  /* Transiciones optimizadas */
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   
+  /* Touch targets */
   --touch-target-min: 44px;
 }
 
 /* ============================================
-   REDUCCIÓN DE MOVIMIENTO
+   MEDIA QUERIES DE ACCESIBILIDAD
    ============================================ */
+
+/* Reducción de movimiento */
 @media (prefers-reduced-motion: reduce) {
   :root {
     --transition-fast: 0.01ms;
@@ -429,9 +455,7 @@
   }
 }
 
-/* ============================================
-   ALTO CONTRASTE
-   ============================================ */
+/* Alto contraste */
 @media (prefers-contrast: high) {
   :root {
     --glass-border: rgba(255, 255, 255, 0.3);

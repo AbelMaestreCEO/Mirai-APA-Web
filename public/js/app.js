@@ -18,6 +18,7 @@ import { init as initFileHandler, reset as resetFileHandler } from './fileHandle
 import { init as initUI, setProcessingState, setFileName, updateProgress, resetUI } from './uiHandler.js';
 import { showNotification } from './utils/notifications.js';
 import { MESSAGES, APP_CONFIG } from './utils/constants.js';
+import { themeManager } from './js/utils/themeManager.js';
 
 // Importación de módulos de procesamiento
 import { readDocxFile } from './processors/docxReader.js';
@@ -58,6 +59,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. Mensaje de bienvenida en consola
     console.log(`✨ ${APP_CONFIG.DESCRIPTION}`);
     console.log(`👨‍💻 Desarrollado por ${APP_CONFIG.AUTHOR} para ${APP_CONFIG.DOMAIN}`);
+
+    // Opcional: Agregar atajo de teclado
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 't' && e.ctrlKey) {
+      e.preventDefault();
+      themeManager.toggleDarkLight();
+    }
+  });
 });
 
 /**

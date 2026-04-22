@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#667eea">
-    <meta name="description" content="Formateador automático de documentos a estilo APA 7. Sube tu DOCX y obtén un documento perfecto en segundos.">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://assets.aberumirai.com https://static.cloudflareinsights.com; connect-src 'self' https://static.cloudflareinsights.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; font-src 'self' data:; object-src 'none'; worker-src blob:;">
+    <meta name="description"
+        content="Formateador automático de documentos a estilo APA 7. Sube tu DOCX y obtén un documento perfecto en segundos.">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://assets.aberumirai.com https://static.cloudflareinsights.com; connect-src 'self' https://static.cloudflareinsights.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; font-src 'self' data:; object-src 'none'; worker-src blob:;">
     <title>Mirai APA | Formateador APA 7</title>
 
     <link rel="icon" href="favicon.ico" type="image/x-icon">
@@ -141,6 +144,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <!-- Header Sticky con efecto Glass -->
@@ -149,35 +153,42 @@
             <img src="favicon.ico" alt="Mirai APA" weight="32" height="32" loading="lazy">
             <span>Mirai APA</span>
         </a>
-        
+
         <nav class="header-nav">
             <a href="#" class="active">Inicio</a>
             <a href="#">Ayuda</a>
-        </nav>
 
-        <button class="btn btn-icon btn-ghost" aria-label="Menú" style="display: none;">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="3" y1="12" x2="21" y2="12"></line>
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
-        </button>
+        </nav>
+        
+
     </header>
 
     <!-- Contenedor Principal -->
     <div class="layout-container">
-        
+
         <main class="main-content">
-            
+
             <!-- Sección Hero: Bienvenida -->
-            <section class="section center-flex" style="flex-direction: column; text-align: center; padding: var(--space-8) var(--space-4);">
-                <h1 style="font-size: var(--font-size-3xl); font-weight: var(--font-weight-bold); margin-bottom: var(--space-2); color: var(--text-primary);">
+            <section class="section center-flex"
+                style="flex-direction: column; text-align: center; padding: var(--space-8) var(--space-4);">
+                    <!-- Agrega esto en tu <header> o justo antes de </body> -->
+        <div class="theme-selector" id="themeSelector" data-tooltip="Cambiar tema">
+  <button class="theme-btn" data-theme="blue-light" title="Azul Claro">☀️</button>
+  <button class="theme-btn" data-theme="blue-dark" title="Azul Oscuro">🌙</button>
+  <button class="theme-btn" data-theme="sakura-light" title="Sakura Claro">🌸</button>
+  <button class="theme-btn" data-theme="sakura-dark" title="Sakura Oscuro">🌺</button>
+</div>
+<div class="sakura-container" id="sakuraContainer"></div>
+                <h1
+                    style="font-size: var(--font-size-3xl); font-weight: var(--font-weight-bold); margin-bottom: var(--space-2); color: var(--text-primary);">
                     Formatea a APA 7
                 </h1>
-                <p style="font-size: var(--font-size-lg); color: var(--text-secondary); max-width: 600px; margin-bottom: var(--space-6);">
-                    Sube tu documento <strong>.DOCX</strong> y deja que Mirai APA aplique automáticamente márgenes, fuentes, interlineado y referencias según las normas vigentes.
+                <p
+                    style="font-size: var(--font-size-lg); color: var(--text-secondary); max-width: 600px; margin-bottom: var(--space-6);">
+                    Sube tu documento <strong>.DOCX</strong> y deja que Mirai APA aplique automáticamente márgenes,
+                    fuentes, interlineado y referencias según las normas vigentes.
                 </p>
-                
+
                 <div class="badge badge-info">
                     <span style="margin-right: 6px;">●</span> Listo para usar
                 </div>
@@ -187,7 +198,8 @@
             <section class="section">
                 <div class="dropzone" id="dropZone">
                     <div class="dropzone-icon">
-                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)"
+                            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                             <polyline points="17 8 12 3 7 8"></polyline>
                             <line x1="12" y1="3" x2="12" y2="15"></line>
@@ -204,7 +216,8 @@
 
                 <div style="margin-top: var(--space-4); text-align: center;">
                     <button class="btn btn-secondary" id="selectFileBtn">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                             <polyline points="17 8 12 3 7 8"></polyline>
                             <line x1="12" y1="3" x2="12" y2="15"></line>
@@ -216,14 +229,19 @@
 
             <!-- Sección de Progreso (Oculta por defecto) -->
             <section class="section" id="progressSection" style="display: none;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-3);">
+                <div
+                    style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-3);">
                     <span class="form-label" style="margin: 0;">Procesando documento...</span>
                     <span class="badge badge-info" id="progressBadge">0%</span>
                 </div>
-                <div style="width: 100%; height: 8px; background: var(--glass-bg-tertiary); border-radius: var(--radius-full); overflow: hidden;">
-                    <div id="progressBar" style="width: 0%; height: 100%; background: var(--color-info); transition: width 0.3s ease;"></div>
+                <div
+                    style="width: 100%; height: 8px; background: var(--glass-bg-tertiary); border-radius: var(--radius-full); overflow: hidden;">
+                    <div id="progressBar"
+                        style="width: 0%; height: 100%; background: var(--color-info); transition: width 0.3s ease;">
+                    </div>
                 </div>
-                <div style="margin-top: var(--space-3); display: flex; align-items: center; gap: var(--space-2); color: var(--text-tertiary); font-size: var(--font-size-sm);">
+                <div
+                    style="margin-top: var(--space-3); display: flex; align-items: center; gap: var(--space-2); color: var(--text-tertiary); font-size: var(--font-size-sm);">
                     <div class="spinner"></div>
                     <span>Aplicando estilos APA 7...</span>
                 </div>
@@ -239,14 +257,16 @@
                         </div>
                         <div class="badge badge-success">Completado</div>
                     </div>
-                    
+
                     <div class="card-body">
-                        <p>Tu documento ha sido procesado exitosamente. Se han aplicado márgenes de 2.54cm, fuente Times New Roman 12pt, doble espacio y sangrías francesas.</p>
+                        <p>Tu documento ha sido procesado exitosamente. Se han aplicado márgenes de 2.54cm, fuente Times
+                            New Roman 12pt, doble espacio y sangrías francesas.</p>
                     </div>
 
                     <div class="card-footer">
                         <button class="btn btn-secondary" id="downloadBtn">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                 <polyline points="7 10 12 15 17 10"></polyline>
                                 <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -267,7 +287,8 @@
                         <h3 class="card-title" style="font-size: var(--font-size-base);">Soporte</h3>
                     </div>
                     <div class="card-body">
-                        <p style="font-size: var(--font-size-sm);">Actualmente soportamos archivos <strong>.DOCX</strong>. El formato .DOC antiguo requiere conversión previa.</p>
+                        <p style="font-size: var(--font-size-sm);">Actualmente soportamos archivos
+                            <strong>.DOCX</strong>. El formato .DOC antiguo requiere conversión previa.</p>
                     </div>
                 </div>
                 <div class="card">
@@ -275,7 +296,8 @@
                         <h3 class="card-title" style="font-size: var(--font-size-base);">Privacidad</h3>
                     </div>
                     <div class="card-body">
-                        <p style="font-size: var(--font-size-sm);">Tus archivos se procesan de forma segura y se eliminan automáticamente de nuestros servidores tras la descarga.</p>
+                        <p style="font-size: var(--font-size-sm);">Tus archivos se procesan de forma segura y se
+                            eliminan automáticamente de nuestros servidores tras la descarga.</p>
                     </div>
                 </div>
             </div>
@@ -330,44 +352,52 @@
                     <ul class="social-icons">
                         <li>
                             <a href="https://www.facebook.com/AberuMiraiCompany" aria-label="Facebook">
-                                <img src="https://assets.aberumirai.com/imgs/icons/32/icons8-facebook-32.webp" loading="lazy" alt="Facebook">
+                                <img src="https://assets.aberumirai.com/imgs/icons/32/icons8-facebook-32.webp"
+                                    loading="lazy" alt="Facebook">
                             </a>
                         </li>
                         <li>
                             <a href="#" aria-label="Twitter">
-                                <img src="https://assets.aberumirai.com/imgs/icons/32/icons8-twitter-32.webp" loading="lazy" alt="Twitter">
+                                <img src="https://assets.aberumirai.com/imgs/icons/32/icons8-twitter-32.webp"
+                                    loading="lazy" alt="Twitter">
                             </a>
                         </li>
                         <li>
                             <a href="https://www.tiktok.com/@aberu_mirai_company" aria-label="TikTok">
-                                <img src="https://assets.aberumirai.com/imgs/icons/32/icons8-tiktok-32.webp" loading="lazy" alt="TikTok">
+                                <img src="https://assets.aberumirai.com/imgs/icons/32/icons8-tiktok-32.webp"
+                                    loading="lazy" alt="TikTok">
                             </a>
                         </li>
                         <li>
                             <a href="https://www.instagram.com/abel_maestre_ceo/" aria-label="Instagram">
-                                <img src="https://assets.aberumirai.com/imgs/icons/32/icons8-instagram-32.webp" loading="lazy" alt="Instagram">
+                                <img src="https://assets.aberumirai.com/imgs/icons/32/icons8-instagram-32.webp"
+                                    loading="lazy" alt="Instagram">
                             </a>
                         </li>
                     </ul>
                     <ul class="social-icons">
                         <li>
                             <a href="https://github.com/AbelMaestreCEO" aria-label="GitHub">
-                                <img src="https://assets.aberumirai.com/imgs/icons/32/icons8-github-32.webp" loading="lazy" alt="GitHub">
+                                <img src="https://assets.aberumirai.com/imgs/icons/32/icons8-github-32.webp"
+                                    loading="lazy" alt="GitHub">
                             </a>
                         </li>
                         <li>
                             <a href="https://soundcloud.com/aberu-mirai-company" aria-label="SoundCloud">
-                                <img src="https://assets.aberumirai.com/imgs/icons/32/icons8-soundcloud-32.webp" loading="lazy" alt="SoundCloud">
+                                <img src="https://assets.aberumirai.com/imgs/icons/32/icons8-soundcloud-32.webp"
+                                    loading="lazy" alt="SoundCloud">
                             </a>
                         </li>
                         <li>
                             <a href="https://maps.app.goo.gl/43ZrkvFNyzQAznbK9" aria-label="Ubicación">
-                                <img src="https://assets.aberumirai.com/imgs/icons/32/icons8-map-32.webp" loading="lazy" alt="Mapa">
+                                <img src="https://assets.aberumirai.com/imgs/icons/32/icons8-map-32.webp" loading="lazy"
+                                    alt="Mapa">
                             </a>
                         </li>
                         <li>
                             <a href="mailto:hello@aberumirai.com" aria-label="Email">
-                                <img src="https://assets.aberumirai.com/imgs/icons/32/icons8-email-32.webp" loading="lazy" alt="Email">
+                                <img src="https://assets.aberumirai.com/imgs/icons/32/icons8-email-32.webp"
+                                    loading="lazy" alt="Email">
                             </a>
                         </li>
                     </ul>
@@ -376,7 +406,10 @@
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; <script>document.write(new Date().getFullYear())</script> Aberu & Mirai Company. Todos los derechos reservados.</p>
+                <p>&copy;
+                    <script>document.write(new Date().getFullYear())</script> Aberu & Mirai Company. Todos los derechos
+                    reservados.
+                </p>
             </div>
         </footer>
 
@@ -388,57 +421,60 @@
     <!-- Librerías externas desde CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" integrity="sha512-Qlv6VSKh1gDKGoJbnyA5RMXYcvnpIqhO++MhIM2fStMcGT9i2T//tSwYFlcyoRRDcDZ+TYHpH8azBBCyhpSeqw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
-
-<script>
-window.addEventListener('load', () => {
-    console.log('=== DEBUG DOCX STRUCTURE ===');
-    console.log('typeof docx:', typeof docx);
-    console.log('docx keys:', Object.keys(docx || {}).slice(0, 20));
-    console.log('docx.Section:', typeof (docx?.Section));
-    console.log('docx.docx?.Section:', typeof (docx?.docx?.Section));
-    console.log('===========================');
-});
-</script>
-
-    <!-- Scripts -->
-    <script type="module"  src="js/utils/constants.js"></script>
-    <script type="module"  src="js/utils/validators.js"></script>
-    <script type="module"  src="js/fileHandler.js"></script>
-    <script type="module"  src="js/uiHandler.js"></script>
-    <script type="module"  src="js/apa/margins.js"></script>
-    <script type="module"  src="js/apa/typography.js"></script>
-    <script type="module"  src="js/apa/spacing.js"></script>
-    <script type="module"  src="js/apa/headers.js"></script>
-    <script type="module"  src="js/apa/paragraphs.js"></script>
-    <script type="module"  src="js/apa/references.js"></script>
-    <script type="module"  src="js/apa/titlePage.js"></script>
-    <script type="module"  src="js/apa/pageNumbers.js"></script>
-    <script type="module"  src="js/apa/tables.js"></script>
-    <script type="module"  src="js/apa/figures.js"></script>
-    <script type="module"  src="js/apa/citations.js"></script>
-    <script type="module"  src="js/apa/abstract.js"></script>
-    <script type="module"  src="js/processors/docxReader.js"></script>
-    <script type="module"  src="js/processors/docxWriter.js"></script>
-    <script type="module"  src="js/api/client.js"></script>
-    <script type="module"  src="js/app.js"></script>
-    <script type="module"  src="js/utils/notifications.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"
+        integrity="sha512-Qlv6VSKh1gDKGoJbnyA5RMXYcvnpIqhO++MhIM2fStMcGT9i2T//tSwYFlcyoRRDcDZ+TYHpH8azBBCyhpSeqw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
 
     <script>
-// Cambio de tema cíclico (4 temas)
-const themes = ['blue-light', 'blue-dark', 'sakura-light', 'sakura-dark'];
-const currentTheme = localStorage.getItem('theme') || 'blue-light';
-document.documentElement.setAttribute('data-theme', currentTheme);
+        window.addEventListener('load', () => {
+            console.log('=== DEBUG DOCX STRUCTURE ===');
+            console.log('typeof docx:', typeof docx);
+            console.log('docx keys:', Object.keys(docx || {}).slice(0, 20));
+            console.log('docx.Section:', typeof (docx?.Section));
+            console.log('docx.docx?.Section:', typeof (docx?.docx?.Section));
+            console.log('===========================');
+        });
+    </script>
 
-document.getElementById('themeToggle')?.addEventListener('click', () => {
-  const current = document.documentElement.getAttribute('data-theme');
-  const idx = themes.indexOf(current);
-  const next = themes[(idx + 1) % themes.length];
-  document.documentElement.setAttribute('data-theme', next);
-  localStorage.setItem('theme', next);
-});
-</script>
+    <!-- Scripts -->
+    <script type="module" src="js/utils/constants.js"></script>
+    <script type="module" src="js/utils/validators.js"></script>
+    <script type="module" src="js/fileHandler.js"></script>
+    <script type="module" src="js/uiHandler.js"></script>
+    <script type="module" src="js/apa/margins.js"></script>
+    <script type="module" src="js/apa/typography.js"></script>
+    <script type="module" src="js/apa/spacing.js"></script>
+    <script type="module" src="js/apa/headers.js"></script>
+    <script type="module" src="js/apa/paragraphs.js"></script>
+    <script type="module" src="js/apa/references.js"></script>
+    <script type="module" src="js/apa/titlePage.js"></script>
+    <script type="module" src="js/apa/pageNumbers.js"></script>
+    <script type="module" src="js/apa/tables.js"></script>
+    <script type="module" src="js/apa/figures.js"></script>
+    <script type="module" src="js/apa/citations.js"></script>
+    <script type="module" src="js/apa/abstract.js"></script>
+    <script type="module" src="js/processors/docxReader.js"></script>
+    <script type="module" src="js/processors/docxWriter.js"></script>
+    <script type="module" src="js/api/client.js"></script>
+    <script type="module" src="js/app.js"></script>
+    <script type="module" src="js/utils/notifications.js"></script>
+
+    <script>
+        // Cambio de tema cíclico (4 temas)
+        const themes = ['blue-light', 'blue-dark', 'sakura-light', 'sakura-dark'];
+        const currentTheme = localStorage.getItem('theme') || 'blue-light';
+        document.documentElement.setAttribute('data-theme', currentTheme);
+
+        document.getElementById('themeToggle')?.addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme');
+            const idx = themes.indexOf(current);
+            const next = themes[(idx + 1) % themes.length];
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+        });
+    </script>
 
 </body>
+
 </html>
