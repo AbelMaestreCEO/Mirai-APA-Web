@@ -1,261 +1,385 @@
 /**
  * js/processors/docxWriter.js
- * API para docx v8.x — compatible con UMD en navegador
- *
- * Fixes:
- * - font debe ser { name: 'Times New Roman' } no string en v8
- * - Packer.toBlob() para navegador
- * - mergeRuns evita texto letra por letra
- * - Document con creator evita modo borrador
+ * 
+ * Generación y exportación del documento .DOCX formateado a APA 7.
+ * Compatible con docx v8+ (UMD build).
  */
 
-function getDocxLib() {
-  const candidates = [window.docx, window.DocxJS, window.DOCX];
-  for (const c of candidates) {
-    if (c?.Document) return c;
-    if (c?.docx?.Document) return c.docx;
-  }
-  throw new Error('Libreria docx no encontrada.');
-}
-
-function makeRun(docx, { text, bold = false, italic = false, size = 24 }) {
-  return new docx.TextRun({
-    text: String(text ?? ''),
-    bold,
-    italics: italic,
-    size,
-    font: { name: 'Times New Roman' },
-  });
-}
-
-function mergeRuns(runs) {
-  const merged = [];
-  for (const r of runs) {
-    const last = merged[merged.length - 1];
-    if (last && !!last.bold === !!r.bold && !!last.italic === !!r.italic) {
-      last.text += r.text;
-    } else {
-      merged.push({ text: r.text ?? '', bold: !!r.bold, italic: !!r.italic });
-    }
-  }
-  return merged;
-}
-
+/**
+ * Genera un nuevo documento DOCX formateado según APA 7.
+ * 
+ * @param {Object} data - { paragraphs, tables, images, metadata }
+ * @param {Object} options - { title, author, affiliation, course, instructor, date }
+ * @returns {Promise<Blob>} Blob del archivo generado.
+ */
 export async function generateDocx(data, options = {}) {
-  const docx = getDocxLib();
-  const { Document, Paragraph, Header, Footer, Packer, AlignmentType,
-          LineRuleType, Table, TableRow, TableCell, WidthType, BorderStyle,
-          ImageRun, PageNumber } = docx;
+    const { paragraphs = [], tables = [], images = [] } = data;
+    const { title, author, affiliation, course, instructor, date } = options;
 
-  const { paragraphs = [], tables = [], images = [] } = data;
-  const { title = 'Titulo del Documento', author = 'Autor',
-          affiliation = '', course = '', instructor = '', date = '' } = options;
+    console.log('[DocxWriter]: Iniciando generación del documento...');
 
-  console.log('[DocxWriter]: Iniciando generacion del documento...');
+    try {
+        // 1. Construir la Portada
+        const titlePageChildren = buildTitlePageContent(title, author, affiliation, course, instructor, date);
 
-  const emu = (inches) => Math.round(inches * 914400);
-  const lr  = LineRuleType?.AUTO ?? 'auto';
+        // 2. Construir el Cuerpo del Documento
+        const bodyChildren = [];
 
-  const emptyLine = () => new Paragraph({
-    children: [],
-    spacing: { line: 480, lineRule: lr, before: 0, after: 0 },
-  });
+        // Abstract si existe
+        if (data.abstract) {
+            bodyChildren.push(...buildAbstractContent(data.abstract));
+        }
 
-  const centeredParagraph = (text, bold = false) => new Paragraph({
-    alignment: AlignmentType.CENTER,
-    spacing: { line: 480, lineRule: lr, before: 0, after: 0 },
-    indent: { firstLine: 0 },
-    children: [makeRun(docx, { text, bold })],
-  });
-
-  // PORTADA
-  const titlePageChildren = [];
-  for (let i = 0; i < 5; i++) titlePageChildren.push(emptyLine());
-  if (title)       titlePageChildren.push(centeredParagraph(title, true));
-  if (author)      titlePageChildren.push(centeredParagraph(author));
-  if (affiliation) titlePageChildren.push(centeredParagraph(affiliation));
-  if (course)      titlePageChildren.push(centeredParagraph(course));
-  if (instructor)  titlePageChildren.push(centeredParagraph(instructor));
-  if (date)        titlePageChildren.push(centeredParagraph(date));
-  for (let i = 0; i < 3; i++) titlePageChildren.push(emptyLine());
-  console.log('[DocxWriter]: Portada generada.');
-
-  // CUERPO
-  const bodyChildren = [];
-
-  if (data.abstract) {
-    bodyChildren.push(new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { line: 480, lineRule: lr, before: 0, after: 0 },
-      children: [makeRun(docx, { text: 'Resumen', bold: true })],
-    }));
-    if (data.abstract.body) {
-      bodyChildren.push(new Paragraph({
-        alignment: AlignmentType.LEFT,
-        spacing: { line: 480, lineRule: lr, before: 0, after: 0 },
-        indent: { firstLine: 0 },
-        children: [makeRun(docx, { text: data.abstract.body })],
-      }));
-    }
-    if (data.abstract.keywords?.length) {
-      bodyChildren.push(new Paragraph({
-        alignment: AlignmentType.LEFT,
-        spacing: { line: 480, lineRule: lr, before: 240, after: 0 },
-        indent: { firstLine: 0 },
-        children: [
-          makeRun(docx, { text: 'Palabras clave:', italic: true }),
-          makeRun(docx, { text: ' ' + data.abstract.keywords.join(', ') }),
-        ],
-      }));
-    }
-  }
-
-  for (const p of paragraphs)  { const x = convertParagraph(p, docx, lr); if (x) bodyChildren.push(x); }
-  for (const t of tables)      { const x = convertTable(t, docx);         if (x) bodyChildren.push(x); }
-  for (const img of images)    { const x = convertImage(img, docx);       if (x) bodyChildren.push(x); }
-
-  // HEADER
-  const pageHeader = new Header({
-    children: [new Paragraph({
-      alignment: AlignmentType.RIGHT,
-      spacing: { before: 0, after: 0 },
-      children: [new docx.TextRun({
-        children: [PageNumber.CURRENT],
-        size: 24,
-        font: { name: 'Times New Roman' },
-      })],
-    })],
-  });
-
-  const pageFooter = new Footer({ children: [emptyLine()] });
-
-  // DOCUMENTO
-  const doc = new Document({
-    creator: 'Mirai APA',
-    description: 'Documento formateado en APA 7',
-    sections: [{
-      properties: {
-        page: { margin: { top: emu(1), right: emu(1), bottom: emu(1), left: emu(1) } },
-      },
-      headers: { default: pageHeader },
-      footers: { default: pageFooter },
-      children: [...titlePageChildren, ...bodyChildren],
-    }],
-  });
-
-  console.log('[DocxWriter]: Empaquetando documento...');
-
-  let blob;
-  if (typeof Packer.toBlob === 'function') {
-    blob = await Packer.toBlob(doc);
-  } else {
-    const base64 = await Packer.toBase64String(doc);
-    const binary = atob(base64);
-    const bytes  = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    blob = new Blob([bytes], {
-      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    });
-  }
-
-  console.log('[DocxWriter]: Documento generado exitosamente.');
-  return blob;
-}
-
-function convertParagraph(p, docx, lr) {
-  if (!p) return null;
-  const { Paragraph, AlignmentType } = docx;
-  const type  = p.type  || 'body';
-  const level = p.level || 0;
-
-  let alignment    = AlignmentType.LEFT;
-  let forceBold    = false, forceItalic = false;
-  let firstLine    = 720, hanging = 0, leftIndent = 0, spacingBefore = 0;
-
-  switch (type) {
-    case 'heading':
-      forceBold = true; firstLine = 0; spacingBefore = 240;
-      if (level === 1) alignment = AlignmentType.CENTER;
-      if (level === 3 || level === 5) forceItalic = true;
-      if (level === 4 || level === 5) leftIndent = 720;
-      break;
-    case 'reference':
-      firstLine = 0; hanging = 720;
-      break;
-    case 'block_quote':
-      firstLine = 0; leftIndent = 720;
-      break;
-  }
-
-  const rawRuns = (p.runs && p.runs.length > 0)
-    ? p.runs
-    : [{ text: p.text ?? '', bold: false, italic: false }];
-
-  const children = mergeRuns(rawRuns).map(r => makeRun(docx, {
-    text:   r.text,
-    bold:   forceBold   || r.bold,
-    italic: forceItalic || r.italic,
-  }));
-
-  return new Paragraph({
-    alignment,
-    spacing: { line: 480, lineRule: lr, before: spacingBefore, after: 0 },
-    indent:  { firstLine, hanging, left: leftIndent },
-    children,
-  });
-}
-
-function convertTable(t, docx) {
-  if (!t?.rows?.length) return null;
-  const { Table, TableRow, TableCell, Paragraph, AlignmentType, WidthType, BorderStyle } = docx;
-  const none = { style: BorderStyle.NONE,   size: 0, color: 'auto' };
-  const line = { style: BorderStyle.SINGLE, size: 4, color: '000000' };
-
-  return new Table({
-    width: { size: 100, type: WidthType.PERCENTAGE },
-    rows: t.rows.map((cells, ri) => new TableRow({
-      children: (Array.isArray(cells) ? cells : []).map((cell) => {
-        const txt  = typeof cell === 'string' ? cell : (cell?.text ?? '');
-        const isH  = ri === 0;
-        return new TableCell({
-          borders: { top: isH ? line : none, bottom: isH ? line : none, left: none, right: none },
-          children: [new Paragraph({
-            alignment: /^[+-]?[\d.,\s%$€]+$/.test(txt.trim()) ? AlignmentType.RIGHT : AlignmentType.LEFT,
-            children:  [makeRun(docx, { text: txt, bold: isH, size: 20 })],
-          })],
+        // Párrafos procesados
+        paragraphs.forEach(p => {
+            const docxParagraph = convertToDocxParagraph(p);
+            if (docxParagraph) bodyChildren.push(docxParagraph);
         });
-      }),
-    })),
-  });
-}
 
-function convertImage(img, docx) {
-  if (!img?.src) return null;
-  const { Paragraph, ImageRun, AlignmentType } = docx;
-  try {
-    let data = img.src;
-    if (typeof data === 'string' && data.startsWith('data:')) {
-      const b64 = data.split(',')[1];
-      const bin = atob(b64);
-      const bytes = new Uint8Array(bin.length);
-      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-      data = bytes.buffer;
+        // Tablas procesadas
+        tables.forEach(t => {
+            const docxTable = convertToDocxTable(t);
+            if (docxTable) bodyChildren.push(docxTable);
+        });
+
+        // Imágenes procesadas
+        images.forEach(img => {
+            const docxImage = convertToDocxImage(img);
+            if (docxImage) bodyChildren.push(docxImage);
+        });
+
+        // 3. Crear el Documento (API v8+)
+        const doc = new docx.Document({
+            sections: [{
+                properties: {
+                    // Márgenes APA 7: 2.54 cm = 1440 twips por pulgada
+                    page: {
+                        margin: {
+                            top: 1440,    // 1 inch = 1440 twips
+                            right: 1440,
+                            bottom: 1440,
+                            left: 1440
+                        }
+                    }
+                },
+                headers: {
+                    default: new docx.Header({
+                        children: [
+                            new docx.Paragraph({
+                                alignment: docx.AlignmentType.RIGHT,
+                                children: [
+                                    new docx.TextRun({
+                                        children: [docx.PageNumber.CURRENT],
+                                        font: "Times New Roman",
+                                        size: 24
+                                    })
+                                ]
+                            })
+                        ]
+                    })
+                },
+                footers: {
+                    default: new docx.Footer({
+                        children: []
+                    })
+                },
+                children: [
+                    ...titlePageChildren,
+                    ...bodyChildren
+                ]
+            }],
+            styles: {
+                default: {
+                    document: {
+                        run: {
+                            font: "Times New Roman",
+                            size: 24
+                        }
+                    }
+                }
+            }
+        });
+
+        // 4. Generar el Blob (API de navegador, NO toBuffer)
+        const blob = await docx.Packer.toBlob(doc);
+
+        console.log('[DocxWriter]: Documento generado exitosamente.');
+        return blob;
+
+    } catch (error) {
+        console.error('[DocxWriter]: Error fatal al generar el documento:', error);
+        throw error;
     }
-    return new Paragraph({
-      alignment: AlignmentType.CENTER,
-      children: [new ImageRun({ data, transformation: { width: img.width || 400, height: img.height || 300 } })],
-    });
-  } catch (e) {
-    console.warn('[DocxWriter]: Imagen omitida:', e.message);
-    return null;
-  }
 }
 
-export function downloadBlob(blob, filename = 'documento_apa.docx') {
-  if (typeof saveAs !== 'undefined') { saveAs(blob, filename); return; }
-  const url = URL.createObjectURL(blob);
-  const a   = document.createElement('a');
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click();
-  document.body.removeChild(a); URL.revokeObjectURL(url);
+// =========================================
+// PORTADA
+// =========================================
+
+function buildTitlePageContent(title, author, affiliation, course, instructor, date) {
+    const children = [];
+
+    // Espaciadores para centrar verticalmente (~4-5 líneas)
+    for (let i = 0; i < 5; i++) {
+        children.push(new docx.Paragraph({
+            spacing: { before: 0, after: 0, line: 480 },
+            children: []
+        }));
+    }
+
+    // Título (Negrita, Centrado)
+    if (title) {
+        children.push(new docx.Paragraph({
+            alignment: docx.AlignmentType.CENTER,
+            spacing: { before: 0, after: 200, line: 480 },
+            children: [
+                new docx.TextRun({
+                    text: title,
+                    bold: true,
+                    font: "Times New Roman",
+                    size: 24
+                })
+            ]
+        }));
+    }
+
+    // Autor
+    if (author) {
+        children.push(createCenteredRun(author, false));
+    }
+
+    // Afiliación
+    if (affiliation) {
+        children.push(createCenteredRun(affiliation, false));
+    }
+
+    // Curso, Instructor, Fecha
+    if (course) children.push(createCenteredRun(course, false));
+    if (instructor) children.push(createCenteredRun(instructor, false));
+    if (date) children.push(createCenteredRun(date, false));
+
+    // Espaciador final
+    for (let i = 0; i < 2; i++) {
+        children.push(new docx.Paragraph({
+            spacing: { before: 0, after: 0, line: 480 },
+            children: []
+        }));
+    }
+
+    return children;
+}
+
+function createCenteredRun(text, bold = false) {
+    return new docx.Paragraph({
+        alignment: docx.AlignmentType.CENTER,
+        spacing: { before: 200, after: 200, line: 480 },
+        children: [
+            new docx.TextRun({
+                text: text,
+                bold: bold,
+                font: "Times New Roman",
+                size: 24
+            })
+        ]
+    });
+}
+
+// =========================================
+// ABSTRACT
+// =========================================
+
+function buildAbstractContent(abstractData) {
+    const children = [];
+
+    // Título "Resumen"
+    children.push(new docx.Paragraph({
+        alignment: docx.AlignmentType.CENTER,
+        spacing: { before: 0, after: 200, line: 480 },
+        children: [
+            new docx.TextRun({
+                text: "Resumen",
+                bold: true,
+                font: "Times New Roman",
+                size: 24
+            })
+        ]
+    }));
+
+    // Cuerpo (sin sangría)
+    if (abstractData.body) {
+        children.push(new docx.Paragraph({
+            alignment: docx.AlignmentType.LEFT,
+            spacing: { before: 0, after: 0, line: 480 },
+            indent: { firstLine: 0 },
+            children: [
+                new docx.TextRun({
+                    text: abstractData.body,
+                    font: "Times New Roman",
+                    size: 24
+                })
+            ]
+        }));
+    }
+
+    // Palabras clave
+    if (abstractData.keywords && abstractData.keywords.length > 0) {
+        children.push(new docx.Paragraph({
+            alignment: docx.AlignmentType.LEFT,
+            spacing: { before: 200, after: 0, line: 480 },
+            indent: { firstLine: 0 },
+            children: [
+                new docx.TextRun({
+                    text: "Palabras clave: ",
+                    italics: true,
+                    font: "Times New Roman",
+                    size: 24
+                }),
+                new docx.TextRun({
+                    text: abstractData.keywords.join(", "),
+                    font: "Times New Roman",
+                    size: 24
+                })
+            ]
+        }));
+    }
+
+    return children;
+}
+
+// =========================================
+// CONVERSIÓN DE PÁRRAFOS
+// =========================================
+
+function convertToDocxParagraph(p) {
+    if (!p || !p.text) return null;
+
+    // Espaciado y sangría según tipo
+    let spacing = { before: 0, after: 0, line: 480 };
+    let indent = {};
+
+    if (p.type === 'body') {
+        indent.firstLine = 720; // 0.5" = 720 twips
+    } else if (p.type === 'reference') {
+        indent.hanging = 720;   // Sangría francesa
+    } else if (p.type === 'heading') {
+        spacing.before = 240;
+        spacing.after = 120;
+    }
+
+    // Alineación
+    let alignment = docx.AlignmentType.LEFT;
+    if (p.type === 'heading' && p.level === 1) {
+        alignment = docx.AlignmentType.CENTER;
+    }
+
+    return new docx.Paragraph({
+        alignment,
+        spacing,
+        indent: Object.keys(indent).length > 0 ? indent : undefined,
+        children: [
+            new docx.TextRun({
+                text: p.text,
+                bold: p.isBold || false,
+                italics: p.isItalic || false,
+                font: "Times New Roman",
+                size: 24
+            })
+        ]
+    });
+}
+
+// =========================================
+// CONVERSIÓN DE TABLAS
+// =========================================
+
+function convertToDocxTable(t) {
+    if (!t || !t.rows) return null;
+
+    const rows = t.rows.map(row => {
+        return new docx.TableRow({
+            children: row.cells.map(cell => {
+                return new docx.TableCell({
+                    children: [
+                        new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({
+                                    text: cell.text || "",
+                                    size: 20, // 10pt para tablas
+                                    bold: cell.isHeader || false,
+                                    font: "Times New Roman"
+                                })
+                            ],
+                            alignment: cell.isNumeric
+                                ? docx.AlignmentType.RIGHT
+                                : docx.AlignmentType.LEFT
+                        })
+                    ],
+                    borders: {
+                        top: { style: cell.isHeader ? docx.BorderStyle.SINGLE : docx.BorderStyle.NONE, size: 1 },
+                        bottom: { style: docx.BorderStyle.SINGLE, size: 1 },
+                        left: { style: docx.BorderStyle.NONE, size: 0 },
+                        right: { style: docx.BorderStyle.NONE, size: 0 }
+                    }
+                });
+            })
+        });
+    });
+
+    return new docx.Table({
+        rows,
+        width: { size: 100, type: docx.WidthType.PERCENTAGE }
+    });
+}
+
+// =========================================
+// CONVERSIÓN DE IMÁGENES
+// =========================================
+
+function convertToDocxImage(img) {
+    if (!img || !img.src) return null;
+
+    let imageData = img.src;
+    if (img.src.startsWith('data:')) {
+        // Extraer base64 y convertir a Uint8Array para el navegador
+        const base64Data = img.src.split(',')[1];
+        const binaryString = atob(base64Data);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        imageData = bytes;
+    }
+
+    return new docx.Paragraph({
+        alignment: docx.AlignmentType.CENTER,
+        children: [
+            new docx.ImageRun({
+                data: imageData,
+                transformation: {
+                    width: img.width || 400,
+                    height: img.height || 300
+                },
+                type: img.type || docx.ImageType.PNG
+            })
+        ]
+    });
+}
+
+// =========================================
+// DESCARGA
+// =========================================
+
+export function downloadBlob(blob, filename = "documento_apa.docx") {
+    if (typeof saveAs !== 'undefined') {
+        saveAs(blob, filename);
+    } else {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
 }

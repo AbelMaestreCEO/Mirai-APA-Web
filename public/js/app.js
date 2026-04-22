@@ -18,7 +18,7 @@ import { init as initFileHandler, reset as resetFileHandler } from './fileHandle
 import { init as initUI, setProcessingState, setFileName, updateProgress, resetUI } from './uiHandler.js';
 import { showNotification } from './utils/notifications.js';
 import { MESSAGES, APP_CONFIG } from './utils/constants.js';
-import { themeManager } from './js/utils/themeManager.js';
+import { themeManager } from './utils/themeManager.js';
 
 // Importación de módulos de procesamiento
 import { readDocxFile } from './processors/docxReader.js';
